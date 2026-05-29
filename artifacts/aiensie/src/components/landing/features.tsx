@@ -1,4 +1,5 @@
 import { Brain, BarChart3, Shield, Zap, Target, Clock } from "lucide-react";
+import { FadeIn } from "@/components/ui/fade-in";
 
 const features = [
   {
@@ -39,7 +40,7 @@ export function Features() {
       <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <FadeIn className="text-center mb-16">
           <div className="inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-sm mb-4">
             <span className="text-muted-foreground">Assessment Features</span>
           </div>
@@ -50,24 +51,19 @@ export function Features() {
             Advanced AI technology combined with behavioral finance research to give you
             the most comprehensive trading behavior assessment available.
           </p>
-        </div>
+        </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="group p-6 rounded-2xl glass border border-border/50 transition-all duration-300 hover:border-primary/50"
-            >
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
-                <feature.icon className="h-6 w-6 text-primary" />
+          {features.map((feature, i) => (
+            <FadeIn key={feature.title} delay={0.08 + i * 0.08}>
+              <div className="group p-6 rounded-2xl glass border border-border/50 transition-all duration-300 hover:border-primary/50 h-full">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
+                  <feature.icon className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
+            </FadeIn>
           ))}
         </div>
       </div>
