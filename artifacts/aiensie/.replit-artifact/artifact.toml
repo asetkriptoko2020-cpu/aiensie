@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Aiensie Landing Page"
+version = "1.0.0"
+id = "artifacts/aiensie"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22479
+
+[services.development]
+run = "pnpm --filter @workspace/aiensie run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aiensie", "run", "build" ]
+publicDir = "artifacts/aiensie/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22479"
+BASE_PATH = "/"
