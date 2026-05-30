@@ -84,6 +84,14 @@ function ScoreRing({ score }: { score: number }) {
 
 type IconComponent = React.ComponentType<{ className?: string; style?: CSSProperties }>;
 
+function scoreLabel(score: number): string {
+  if (score >= 85) return "Elite";
+  if (score >= 70) return "Strong";
+  if (score >= 50) return "Stable";
+  if (score >= 30) return "Developing";
+  return "Weak";
+}
+
 const DIMENSION_META: Array<{
   key: keyof AiensieScores;
   label: string;
@@ -91,11 +99,11 @@ const DIMENSION_META: Array<{
   Icon: IconComponent;
   color: string;
 }> = [
-  { key: "disciplineScore",         label: "Discipline",       sublabel: "How well you control how often and how much you trade",  Icon: Target,     color: "#06b6d4" },
-  { key: "riskControlScore",        label: "Risk Control",     sublabel: "How well your winning trades outpace your losing ones",  Icon: Shield,     color: "#10b981" },
-  { key: "consistencyScore",        label: "Trading Stability",sublabel: "How consistently you apply the same approach each time", Icon: Activity,   color: "#f59e0b" },
-  { key: "emotionalStabilityScore", label: "Emotional Control",sublabel: "How well you stay calm under pressure and after losses",  Icon: Brain,      color: "#a78bfa" },
-  { key: "decisionQualityScore",    label: "Trade Quality",    sublabel: "How good your entries and exits are on average",         Icon: TrendingUp, color: "#38bdf8" },
+  { key: "disciplineScore",         label: "Discipline",       sublabel: "Are you trading on your terms, or reacting to the market?", Icon: Target,     color: "#06b6d4" },
+  { key: "riskControlScore",        label: "Risk Control",     sublabel: "Do your wins recover more than your losses take away?",      Icon: Shield,     color: "#10b981" },
+  { key: "consistencyScore",        label: "Trading Stability",sublabel: "Are you trading the same way each day, or all over the place?", Icon: Activity,   color: "#f59e0b" },
+  { key: "emotionalStabilityScore", label: "Emotional Control",sublabel: "Do you stay grounded after a loss, or does it change how you trade?", Icon: Brain,      color: "#a78bfa" },
+  { key: "decisionQualityScore",    label: "Trade Quality",    sublabel: "Are your entries and exits serving you, or costing you?",    Icon: TrendingUp, color: "#38bdf8" },
 ];
 
 function DimensionBar({
@@ -121,10 +129,6 @@ function DimensionBar({
     return () => clearTimeout(t);
   }, [score, delay]);
 
-  const delta      = score - aiensieScore;
-  const deltaStr   = delta > 0 ? `+${delta}` : String(delta);
-  const deltaColor = delta >= 0 ? "text-emerald-400" : "text-red-400";
-
   return (
     <div className="flex items-center gap-3 group py-0.5">
       <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -138,7 +142,7 @@ function DimensionBar({
             <span className="hidden sm:inline text-xs text-muted-foreground ml-2">{sublabel}</span>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className={`text-[11px] font-medium tabular-nums ${deltaColor}`}>{deltaStr}</span>
+            <span className="text-[11px] font-medium text-muted-foreground/60">{scoreLabel(score)}</span>
             <span className="text-sm font-semibold tabular-nums" style={{ color }}>
               {display}<span className="text-muted-foreground text-xs font-normal">/100</span>
             </span>
@@ -275,31 +279,31 @@ function StatCard({ label, value, interpretation }: {
 // ── Helpers: human-readable metric interpretations ────────────────────────────
 
 function winRateInterpretation(rate: number): string {
-  if (rate >= 0.60) return "You win more often than most traders";
-  if (rate >= 0.50) return "More than half your trades are profitable";
-  if (rate >= 0.40) return "Under half your trades win — sizing matters here";
-  return "Most trades end at a loss — this needs attention";
+  if (rate >= 0.60) return "You find your edge more often than most — a real sign of selectivity";
+  if (rate >= 0.50) return "More than half your trades are working in your favour";
+  if (rate >= 0.40) return "Most trades aren't landing yet — but strong sizing can still make this work";
+  return "The majority of trades are ending at a loss — this is the first thing worth addressing";
 }
 
 function payoffInterpretation(ratio: number): string {
-  if (ratio >= 2.0) return "Your winners are 2× bigger than your losers";
-  if (ratio >= 1.5) return "Your wins meaningfully outpace your losses";
-  if (ratio >= 1.0) return "Wins and losses are close in size";
-  return "Your losses are currently larger than your wins";
+  if (ratio >= 2.0) return "When you win, you win big — your winners are doing the heavy lifting";
+  if (ratio >= 1.5) return "Your wins are meaningfully larger than your losses — that's a healthy edge";
+  if (ratio >= 1.0) return "Wins and losses are roughly the same size — your win rate carries most of the weight";
+  return "Your losses are currently bigger than your wins — even a good win rate struggles to overcome this";
 }
 
 function profitEfficiencyInterpretation(pf: number): string {
-  if (pf >= 2.0) return "For every $1 lost, you make over $2";
-  if (pf >= 1.5) return "Your profits significantly outpace your losses";
-  if (pf >= 1.0) return "You're close to breaking even overall";
-  return "Your losses currently outweigh your profits";
+  if (pf >= 2.0) return "For every dollar you give back, you're keeping more than two — that's efficient trading";
+  if (pf >= 1.5) return "Your profitable trades are clearly outpacing the damage from losing ones";
+  if (pf >= 1.0) return "You're hovering near breakeven — the foundation is there, but the edge needs sharpening";
+  return "Your current trading results are still struggling to stay consistently profitable over time";
 }
 
 function streakInterpretation(n: number): string {
-  if (n <= 2) return "Very short — great resilience";
-  if (n <= 4) return "Normal for most traders";
-  if (n <= 7) return "Extended — can create emotional pressure";
-  return "Long streaks are psychologically challenging";
+  if (n <= 2) return "Your losses rarely chain together — that's a sign of real psychological resilience";
+  if (n <= 4) return "A normal run for most traders — how you respond to it matters more than the streak itself";
+  if (n <= 7) return "This kind of run puts emotional pressure on any trader — worth watching how it affects your next decisions";
+  return "Extended losing streaks at this level can quietly reshape how you trade — often in ways that are hard to notice in the moment";
 }
 
 // ── Strength / Weakness item ──────────────────────────────────────────────────
@@ -425,10 +429,6 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
             />
           ))}
         </div>
-        <p className="text-[11px] text-muted-foreground/50 mt-4 pt-4 border-t border-border/30">
-          The vertical line marks your overall Aiensie Score ({aiensieScore}).
-          Scores to the right are strengths; scores to the left are areas to work on.
-        </p>
       </div>
 
       {/* ── 3. Behavioral Intelligence Summary ── */}
