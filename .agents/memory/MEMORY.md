@@ -1,0 +1,2 @@
+- [Vite Fast Refresh constraint](vite-fast-refresh.md) — component files must only export React components; utility functions must live in separate non-component files.
+- [Behavior memory storage](behavior-memory.md) — localStorage key `aiensie_report_history` stores up to 10 BehaviorSnapshot objects; utilities in `artifacts/aiensie/src/lib/behavior-memory.ts`.

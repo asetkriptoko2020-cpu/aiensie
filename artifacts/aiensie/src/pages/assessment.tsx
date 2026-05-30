@@ -4,7 +4,6 @@ import Papa from "papaparse";
 import {
   Upload,
   FileText,
-  Shield,
   CheckCircle2,
   Loader2,
   AlertCircle,
@@ -16,7 +15,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { detectAndParse, generateReport, SAMPLE_TRADES } from "@workspace/aiensie-engine";
 import type { AiensieReport } from "@workspace/aiensie-engine";
-import { ScoreReport } from "@/components/report/ScoreReport";
+import { ScoreReport }        from "@/components/report/ScoreReport";
+import { saveReportSnapshot } from "@/lib/behavior-memory";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -38,11 +38,11 @@ type Phase =
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const INITIAL_STEPS: ProcessingStep[] = [
-  { id: 1, title: "Reading trade history",        description: "Parsing and validating your trading data",          status: "pending" },
-  { id: 2, title: "Detecting exchange format",     description: "Identifying CSV structure and data source",          status: "pending" },
-  { id: 3, title: "Normalizing trades",           description: "Standardizing records for cross-asset analysis",     status: "pending" },
-  { id: 4, title: "Calculating risk metrics",     description: "Analyzing position sizing and exposure patterns",    status: "pending" },
-  { id: 5, title: "Generating Aiensie Score",     description: "Computing your comprehensive behavioral assessment", status: "pending" },
+  { id: 1, title: "Reading trade history",        description: "Parsing and validating your trading data",              status: "pending" },
+  { id: 2, title: "Detecting exchange format",     description: "Identifying CSV structure and data source",            status: "pending" },
+  { id: 3, title: "Normalizing trades",           description: "Standardizing records for cross-asset analysis",       status: "pending" },
+  { id: 4, title: "Calculating risk metrics",     description: "Analyzing position sizing and exposure patterns",      status: "pending" },
+  { id: 5, title: "Generating Aiensie Score",     description: "Computing your comprehensive behavioral assessment",   status: "pending" },
 ];
 
 const MARKET_GROUPS = [
@@ -136,11 +136,11 @@ export default function AssessmentPage() {
       await delay(350);
 
       console.log("[Aiensie] Parse result:", {
-        exchange:   parseResult.exchange,
-        label:      parseResult.exchangeLabel,
-        trades:     parseResult.tradeCount,
-        skipped:    parseResult.skippedRows,
-        warnings:   parseResult.warnings,
+        exchange:  parseResult.exchange,
+        label:     parseResult.exchangeLabel,
+        trades:    parseResult.tradeCount,
+        skipped:   parseResult.skippedRows,
+        warnings:  parseResult.warnings,
       });
 
       setStepStatus(1, "complete");
@@ -175,24 +175,29 @@ export default function AssessmentPage() {
 
       // ── Step 5: Score ──
       setStepStatus(4, "processing");
-      const report = generateReport(parseResult.trades);
+      const report = generateReport(parseResult.trades, parseResult.exchangeLabel);
 
       console.log("[Aiensie] Generated report:", {
-        aiensieScore:           report.aiensieScore,
-        label:                  report.label,
-        traderType:             report.traderType,
-        disciplineScore:        report.scores.disciplineScore,
-        riskControlScore:       report.scores.riskControlScore,
-        consistencyScore:       report.scores.consistencyScore,
-        emotionalStabilityScore:report.scores.emotionalStabilityScore,
-        decisionQualityScore:   report.scores.decisionQualityScore,
-        detectedPatterns:       report.detectedPatterns.map((p) => `${p.name} (${p.severity})`),
+        aiensieScore:            report.aiensieScore,
+        label:                   report.label,
+        traderType:              report.traderType,
+        dynamicPersona:          report.dynamicPersona.title,
+        disciplineScore:         report.scores.disciplineScore,
+        riskControlScore:        report.scores.riskControlScore,
+        consistencyScore:        report.scores.consistencyScore,
+        emotionalStabilityScore: report.scores.emotionalStabilityScore,
+        decisionQualityScore:    report.scores.decisionQualityScore,
+        detectedPatterns:        report.detectedPatterns.map((p) => `${p.name} (${p.severity})`),
+        sessionIntelligence:     !!report.sessionIntelligence,
       });
 
       await delay(800);
       setStepStatus(4, "complete");
-
       await delay(600);
+
+      // ── Save snapshot to behavior memory ──
+      saveReportSnapshot(report, parseResult.exchangeLabel, parseResult.tradeCount);
+
       setPhase({
         name:       "complete",
         report,
@@ -231,18 +236,23 @@ export default function AssessmentPage() {
     setStepStatus(3, "complete");
 
     setStepStatus(4, "processing");
-    const report = generateReport(SAMPLE_TRADES);
+    const report = generateReport(SAMPLE_TRADES, "Sample Data");
 
     console.log("[Aiensie] Sample report:", {
-      aiensieScore:     report.aiensieScore,
-      label:            report.label,
-      traderType:       report.traderType,
+      aiensieScore:    report.aiensieScore,
+      label:           report.label,
+      dynamicPersona:  report.dynamicPersona.title,
+      traderType:      report.traderType,
       detectedPatterns: report.detectedPatterns.map((p) => `${p.name} (${p.severity})`),
+      sessionIntelligence: !!report.sessionIntelligence,
     });
 
     await delay(800);
     setStepStatus(4, "complete");
     await delay(600);
+
+    // Save snapshot
+    saveReportSnapshot(report, "Sample Data", SAMPLE_TRADES.length);
 
     setPhase({
       name:       "complete",

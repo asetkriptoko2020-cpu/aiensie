@@ -15,9 +15,13 @@ import {
   Zap,
   ChevronRight,
   BarChart3,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AiensieReport, AiensieScores, DetectedPattern } from "@workspace/aiensie-engine";
+import { SessionIntelligenceCard }  from "@/components/report/SessionIntelligenceCard";
+import { TraderArchetypeCard }      from "@/components/report/TraderArchetypeCard";
+import { BehaviorEvolutionCard }    from "@/components/report/BehaviorEvolutionCard";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -98,11 +102,11 @@ const DIMENSION_META: Array<{
   Icon: IconComponent;
   color: string;
 }> = [
-  { key: "disciplineScore",         label: "Discipline",       sublabel: "Are you trading on your terms, or reacting to the market?", Icon: Target,     color: "#06b6d4" },
-  { key: "riskControlScore",        label: "Risk Control",     sublabel: "Do your wins recover more than your losses take away?",      Icon: Shield,     color: "#10b981" },
-  { key: "consistencyScore",        label: "Trading Stability",sublabel: "Are you trading the same way each day, or all over the place?", Icon: Activity,   color: "#f59e0b" },
-  { key: "emotionalStabilityScore", label: "Emotional Control",sublabel: "Do you stay grounded after a loss, or does it change how you trade?", Icon: Brain,      color: "#a78bfa" },
-  { key: "decisionQualityScore",    label: "Trade Quality",    sublabel: "Are your entries and exits serving you, or costing you?",    Icon: TrendingUp, color: "#38bdf8" },
+  { key: "disciplineScore",         label: "Discipline",       sublabel: "Are you trading on your terms, or reacting to the market?",       Icon: Target,     color: "#06b6d4" },
+  { key: "riskControlScore",        label: "Risk Control",     sublabel: "Do your wins recover more than your losses take away?",            Icon: Shield,     color: "#10b981" },
+  { key: "consistencyScore",        label: "Trading Stability",sublabel: "Are you trading the same way each day, or all over the place?",    Icon: Activity,   color: "#f59e0b" },
+  { key: "emotionalStabilityScore", label: "Emotional Control",sublabel: "Do you stay grounded after a loss, or does it change how you trade?", Icon: Brain,   color: "#a78bfa" },
+  { key: "decisionQualityScore",    label: "Trade Quality",    sublabel: "Are your entries and exits serving you, or costing you?",          Icon: TrendingUp, color: "#38bdf8" },
 ];
 
 function DimensionBar({
@@ -208,24 +212,24 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
   );
 }
 
-// ── Behavioral Intelligence Summary ──────────────────────────────────────────
+// ── Smart Summary Card ────────────────────────────────────────────────────────
 
-interface InsightBlock {
-  title: string;
-  text: string;
-}
+function SmartSummaryCard({ report }: { report: AiensieReport }) {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-function buildInsightBlocks(report: AiensieReport): InsightBlock[] {
-  const { aiensieScore, scores, metrics, detectedPatterns } = report;
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      { threshold: 0.08 },
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
-  // Block 1 — Overall Behavior
-  const overallText =
-    aiensieScore >= 85 ? "Your trading reflects disciplined, institutional-grade habits. The behavioral foundation here is genuinely strong." :
-    aiensieScore >= 70 ? "You've built a solid foundation — largely controlled, consistent, and rational under pressure." :
-    aiensieScore >= 55 ? "You have the instincts. Some habits are quietly working against you — the edge is there, it needs protecting." :
-    aiensieScore >= 40 ? "The record shows reactive trading more than planned execution. These patterns are common and correctable." :
-                         "There's a gap between knowing what to do and doing it under pressure. The focus now is on process.";
+  const { aiensieScore, scores, metrics, detectedPatterns, smartSummary } = report;
 
+  // Block 1 — Smart summary (behavior-conditional)
   // Block 2 — Main Risk
   const topPattern =
     detectedPatterns.find((p) => p.severity === "high") ??
@@ -258,33 +262,16 @@ function buildInsightBlocks(report: AiensieReport): InsightBlock[] {
     riskText = weakest[1];
   }
 
-  // Block 3 — Coaching Insight
   const coachText =
     aiensieScore >= 70 ? "The gap between here and consistently strong is narrow — stay process-focused and don't optimise for recent results." :
     aiensieScore >= 50 ? "The issues are specific, not systemic. One or two targeted changes can shift the trajectory quickly." :
                          "Start with process, not outcomes. Getting sizing and loss management right changes everything else downstream.";
 
-  return [
-    { title: "Overall Behavior",  text: overallText },
-    { title: "Main Risk",         text: riskText    },
-    { title: "Coaching Insight",  text: coachText   },
+  const blocks = [
+    { title: "Behavioral Assessment", text: smartSummary },
+    { title: "Main Risk",             text: riskText     },
+    { title: "Coaching Insight",      text: coachText    },
   ];
-}
-
-function BehavioralIntelligenceSummary({ report }: { report: AiensieReport }) {
-  const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  const blocks = buildInsightBlocks(report);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.08 },
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <div ref={ref} className="glass rounded-2xl p-6 overflow-hidden">
@@ -318,7 +305,7 @@ function BehavioralIntelligenceSummary({ report }: { report: AiensieReport }) {
       >
         <span className="w-1.5 h-1.5 rounded-full bg-primary/50" />
         <p className="text-[11px] text-muted-foreground/50 tracking-wide">
-          Generated from {report.metrics.totalTrades} trades · Aiensie Behavioral Engine
+          Generated from {metrics.totalTrades} trades · Aiensie Behavioral Engine
         </p>
       </div>
     </div>
@@ -338,8 +325,6 @@ function StatCard({ label, value, sub }: {
     </div>
   );
 }
-
-// ── Helpers: human-readable metric interpretations ────────────────────────────
 
 function formatMoney(amount: number): string {
   const abs = Math.abs(amount);
@@ -390,19 +375,20 @@ function ActionItem({ index, text }: { index: number; text: string }) {
 export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreReportProps) {
   const topRef = useRef<HTMLDivElement>(null);
   const {
-    aiensieScore, label, traderType, persona,
+    aiensieScore, label, traderType, dynamicPersona,
     scores, metrics, detectedPatterns, strengths, weaknesses, actionPlan,
+    sessionIntelligence, archetypeDNA,
   } = report;
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  const winRatePct    = `${(metrics.winRate * 100).toFixed(1)}%`;
-  const avgWinStr     = `+${formatMoney(metrics.averageWin)}`;
-  const avgLossStr    = `-${formatMoney(Math.abs(metrics.averageLoss))}`;
-  const profitFactor  = metrics.profitFactor.toFixed(2);
-  const maxStreak     = String(metrics.maxConsecutiveLosses);
+  const winRatePct   = `${(metrics.winRate * 100).toFixed(1)}%`;
+  const avgWinStr    = `+${formatMoney(metrics.averageWin)}`;
+  const avgLossStr   = `-${formatMoney(Math.abs(metrics.averageLoss))}`;
+  const profitFactor = metrics.profitFactor.toFixed(2);
+  const maxStreak    = String(metrics.maxConsecutiveLosses);
 
   const highSeverityCount   = detectedPatterns.filter((p) => p.severity === "high").length;
   const mediumSeverityCount = detectedPatterns.filter((p) => p.severity === "medium").length;
@@ -425,31 +411,53 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
               <span className="text-xs px-2.5 py-1 rounded-full bg-card border border-border/60 text-muted-foreground">
                 {tradeCount} trades analysed
               </span>
+              {dynamicPersona && (
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full border text-violet-400 border-violet-500/30 bg-violet-900/20">
+                  {dynamicPersona.archetype}
+                </span>
+              )}
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">{traderType}</h2>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto sm:mx-0 leading-relaxed">{persona}</p>
+
+            {/* Dynamic persona title */}
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+              {dynamicPersona ? dynamicPersona.title : traderType}
+            </h2>
+
+            {/* Tone tags */}
+            {dynamicPersona?.tone && (
+              <p className="text-[11px] text-muted-foreground/50 mb-2 tracking-wide">
+                {dynamicPersona.tone}
+              </p>
+            )}
+
+            {/* Dynamic persona summary */}
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto sm:mx-0 leading-relaxed">
+              {dynamicPersona ? dynamicPersona.summary : report.persona}
+            </p>
+
+            {/* Persona confidence */}
+            {dynamicPersona && (
+              <div className="flex items-center gap-2 mt-3">
+                <div className="flex-1 max-w-[120px] h-1 rounded-full bg-white/5">
+                  <div
+                    className="h-full rounded-full bg-violet-400/60"
+                    style={{ width: `${dynamicPersona.confidence}%`, transition: "width 1s ease 0.5s" }}
+                  />
+                </div>
+                <span className="text-[10px] text-muted-foreground/40 tabular-nums">
+                  {dynamicPersona.confidence}% confidence
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Key stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-6 pt-6 border-t border-border/40">
-          <StatCard
-            label="Win Rate"
-            value={winRatePct}
-          />
-          <StatCard
-            label="Avg Win / Avg Loss"
-            value={avgWinStr}
-            sub={avgLossStr}
-          />
-          <StatCard
-            label={`Earned per $1 Lost`}
-            value={`$${profitFactor}`}
-          />
-          <StatCard
-            label="Worst Losing Streak"
-            value={`${maxStreak} trades`}
-          />
+          <StatCard label="Win Rate"         value={winRatePct} />
+          <StatCard label="Avg Win / Avg Loss" value={avgWinStr} sub={avgLossStr} />
+          <StatCard label="Earned per $1 Lost" value={`$${profitFactor}`} />
+          <StatCard label="Worst Losing Streak" value={`${maxStreak} trades`} />
         </div>
       </div>
 
@@ -472,8 +480,8 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         </div>
       </div>
 
-      {/* ── 3. Behavioral Intelligence Summary ── */}
-      <BehavioralIntelligenceSummary report={report} />
+      {/* ── 3. Behavioral Intelligence Summary (Smart) ── */}
+      <SmartSummaryCard report={report} />
 
       {/* ── 4. Detected Behavioral Patterns ── */}
       <div className="glass rounded-2xl p-6">
@@ -522,7 +530,18 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         )}
       </div>
 
-      {/* ── 5. Key Strengths ── */}
+      {/* ── 5. Session Intelligence ── */}
+      {sessionIntelligence && (
+        <SessionIntelligenceCard data={sessionIntelligence} />
+      )}
+
+      {/* ── 6. Behavioral DNA / Archetype ── */}
+      <TraderArchetypeCard data={archetypeDNA} />
+
+      {/* ── 7. Behavior Evolution ── */}
+      <BehaviorEvolutionCard currentReport={report} />
+
+      {/* ── 8. Key Strengths ── */}
       <div className="glass rounded-2xl p-6">
         <SectionHeader label="What You're Doing Well" icon={CheckCircle2} />
         <ul className="space-y-2.5">
@@ -532,7 +551,7 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         </ul>
       </div>
 
-      {/* ── 6. Risk Weaknesses ── */}
+      {/* ── 9. Risk Weaknesses ── */}
       <div className="glass rounded-2xl p-6">
         <SectionHeader label="Where You're Losing Ground" icon={XCircle} />
         {weaknesses.length === 0 ? (
@@ -551,7 +570,7 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         )}
       </div>
 
-      {/* ── 7. Personalised Action Plan ── */}
+      {/* ── 10. Personalised Action Plan ── */}
       <div className="glass rounded-2xl p-6">
         <SectionHeader label="Your Action Plan" icon={Zap} />
         <p className="text-xs text-muted-foreground mb-4 -mt-1">
@@ -564,7 +583,7 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         </ol>
       </div>
 
-      {/* ── 8. Disclaimer ── */}
+      {/* ── 11. Disclaimer ── */}
       <div className="flex items-start gap-3 p-4 rounded-xl bg-card/40 border border-border/40">
         <Info className="w-4 h-4 text-muted-foreground/60 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground/70 leading-relaxed">
@@ -583,7 +602,8 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
           New Assessment
         </Button>
         <Button className="flex-1 h-12 glow-primary">
-          Upgrade for Full Report
+          <Sparkles className="w-4 h-4 mr-2" />
+          Upgrade for Full Intelligence
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>

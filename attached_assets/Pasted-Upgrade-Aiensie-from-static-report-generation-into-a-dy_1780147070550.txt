@@ -1,0 +1,178 @@
+Upgrade Aiensie from static report generation into a dynamic behavioral intelligence engine.
+
+Do NOT redesign the UI.
+Keep the current premium dark fintech aesthetic.
+
+GOAL:
+Make every report feel psychologically unique and personalized based on trading behavior patterns.
+
+--------------------------------------------------
+1. DYNAMIC TRADER PERSONA ENGINE
+--------------------------------------------------
+
+Replace static personas with dynamically generated personas.
+
+Generate personas based on:
+- trade frequency
+- emotional behavior
+- consistency
+- risk profile
+- position sizing
+- streak behavior
+- revenge trading
+- volatility exposure
+
+Example personas:
+- Systematic Operator
+- Reactive Trader
+- Conviction Trader
+- Emotional Executor
+- Selective Swing Trader
+- Aggressive Opportunist
+- Structured Performer
+- High-Pressure Scalper
+- Discipline-Driven Trader
+
+Each persona should include:
+- title
+- short psychological summary
+- tone matched to behavior
+
+Examples:
+
+"Your execution is process-oriented and emotionally stable across most sessions."
+
+"You perform best when selective, but emotional escalation appears during rapid re-entry periods."
+
+--------------------------------------------------
+2. SMART REPORT WRITING
+--------------------------------------------------
+
+Replace repetitive/static summary writing with intelligent conditional writing.
+
+Behavior-aware examples:
+
+IF:
+- overtrading high
+- revenge trading high
+THEN:
+"Your recent trading activity suggests emotionally reactive execution patterns."
+
+IF:
+- consistency high
+- sizing stable
+THEN:
+"Your execution process is becoming increasingly repeatable and structured."
+
+IF:
+- emotional stability improving
+THEN:
+"Recent uploads indicate improving emotional control during difficult sessions."
+
+IF:
+- high volatility affects performance
+THEN:
+"Execution quality declines noticeably during high-volatility environments."
+
+IMPORTANT:
+- avoid robotic tone
+- avoid generic motivational language
+- concise
+- psychologically intelligent
+- institutional tone
+- human-readable
+
+--------------------------------------------------
+3. SESSION INTELLIGENCE
+--------------------------------------------------
+
+Add behavioral analysis by session/time.
+
+Examples:
+- Morning Sessions: disciplined
+- Late-night Sessions: impulsive
+- High volatility periods: emotional
+- Slow market conditions: patient
+
+Create a new card:
+"Session Intelligence"
+
+Include:
+- strongest session
+- weakest session
+- emotional risk period
+- best execution window
+
+--------------------------------------------------
+4. BEHAVIOR MEMORY SYSTEM
+--------------------------------------------------
+
+Use previous uploaded reports to generate progression insights.
+
+Examples:
+- Emotional stability improved compared to previous uploads
+- Revenge trading frequency decreased
+- Trade patience improved over the last 3 reports
+- Position sizing consistency increased
+
+Create:
+"Behavior Evolution"
+
+This should compare:
+- latest report
+vs
+- historical reports
+
+--------------------------------------------------
+5. TRADER ARCHETYPE / BEHAVIORAL DNA
+--------------------------------------------------
+
+Expand Behavioral DNA into a deeper intelligence profile.
+
+Examples:
+
+"You perform best in low-frequency, high-conviction environments."
+
+"Your edge deteriorates when execution frequency increases."
+
+"You rely heavily on momentum confidence after winning streaks."
+
+"Your strongest decisions occur during structured trend conditions."
+
+Tone:
+- elite behavioral coach
+- hedge-fund psychological analyst
+- concise
+- high-signal
+
+--------------------------------------------------
+6. REPORT PERSONALIZATION
+--------------------------------------------------
+
+Ensure reports feel different depending on:
+- exchange
+- asset class
+- behavior profile
+- session timing
+- streak behavior
+- volatility response
+
+Examples:
+- crypto traders behave differently from stock traders
+- forex sessions trigger different emotional behavior
+- options behavior may appear more aggressive
+
+--------------------------------------------------
+IMPORTANT
+--------------------------------------------------
+
+- Use mock intelligence logic for now
+- No backend/database yet
+- Keep modular structure
+- Do not redesign current pages
+- Make Aiensie feel:
+  - alive
+  - psychologically aware
+  - adaptive
+  - intelligent
+  - premium SaaS

@@ -9,6 +9,15 @@ export type {
   AiensieScores,
   AiensieReport,
   ScoreLabel,
+  TraderPersona,
+  SessionPeriod,
+  SessionProfile,
+  SessionIntelligence,
+  ArchetypeSignal,
+  TraderArchetypeDNA,
+  BehaviorSnapshot,
+  EvolutionDelta,
+  BehaviorEvolution,
 } from "./types.js";
 
 // ── Engine pipeline ───────────────────────────────────────────────────────────
@@ -16,6 +25,12 @@ export { computeMetrics }                        from "./metrics.js";
 export { detectPatterns }                        from "./patterns.js";
 export { computeScores, computeAiensieScore }    from "./scoring.js";
 export { generateReport }                        from "./report.js";
+
+// ── Intelligence modules ──────────────────────────────────────────────────────
+export { classifyPersona }                       from "./persona.js";
+export { analyzeSessionIntelligence }            from "./session-intelligence.js";
+export { buildArchetypeDNA }                     from "./archetype.js";
+export { generateSmartSummary }                  from "./smart-summary.js";
 
 // ── Narrative engine ──────────────────────────────────────────────────────────
 export type { NarrativeResult }                  from "./narrative/generateNarrative.js";
