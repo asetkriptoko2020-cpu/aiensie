@@ -1,6 +1,6 @@
 import type { Trade } from "../types.js";
 
-export type ExchangeId = "binance" | "bybit" | "okx" | "hyperliquid" | "unknown";
+export type ExchangeId = "binance" | "bybit" | "okx" | "hyperliquid" | "generic" | "unknown";
 
 export interface ParseResult {
   exchange: ExchangeId;

@@ -29,4 +29,5 @@ export {
   parseBybit,
   parseOKX,
   parseHyperliquid,
+  parseGeneric,
 }                                                from "./parsers/index.js";

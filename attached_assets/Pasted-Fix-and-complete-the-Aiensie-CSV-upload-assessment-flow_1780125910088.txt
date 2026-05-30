@@ -1,0 +1,93 @@
+Fix and complete the Aiensie CSV upload assessment flow.
+
+IMPORTANT:
+- Do NOT redesign the UI
+- Keep the exact current premium fintech design
+- Only improve upload + parsing + assessment functionality
+
+Current problem:
+Some CSV files are still rejected or fail parsing.
+
+Tasks:
+
+1. Create Universal CSV Parser
+Build a fallback parser that accepts generic trading CSV files.
+
+Accept flexible headers such as:
+- symbol / Symbol / Pair
+- side / Side
+- pnl / PnL / Realized PnL / Realized Profit / Closed PnL
+- entry_time / entryTime / Entry Time / Time / Date(UTC)
+- exit_time / exitTime / Exit Time / Close Time
+
+Only require:
+- symbol
+- side
+- pnl
+
+All other fields optional.
+
+2. Auto-Normalize Missing Fields
+If missing:
+- exit_time → auto generate
+- entry_price → default 0
+- exit_price → default 0
+- position_size → default 0
+
+3. Generate Real Assessment
+After upload:
+- parse CSV
+- normalize trades
+- run scoring engine
+- generate:
+  - Aiensie Score
+  - Discipline Score
+  - Risk Control Score
+  - Consistency Score
+  - Emotional Stability Score
+  - Trader Persona
+  - Detected Patterns
+
+4. Replace Static Dashboard
+Replace all hardcoded numbers with real generated values from uploaded CSV.
+
+5. Add Debug Console Logs
+Log:
+- detected headers
+- detected parser
+- parsed trades count
+- generated scores
+- detected patterns
+
+6. Add Upload Success State
+After successful upload:
+- smooth transition to assessment result
+- loading animation
+- processing steps animation
+
+7. Error Handling
+Only show "Unsupported CSV format" if:
+- parsed trades = 0
+
+Otherwise continue with generic parser.
+
+8. Add Sample Test Mode
+Add a button:
+"Use Sample Trading Data"
+
+When clicked:
+- auto load mock trades
+- generate fake assessment
+- demonstrate the product without upload
+
+9. Keep Everything Modular
+Structure:
+- lib/aiensie/parsers/
+- lib/aiensie/scoring/
+- components/upload/
+- components/results/
+
+10. IMPORTANT
+Do not change the visual design.
+Do not redesign components.
+Focus only on functionality and making the upload flow actually work.

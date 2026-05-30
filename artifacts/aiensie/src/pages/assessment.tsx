@@ -11,9 +11,10 @@ import {
   ArrowRight,
   X,
   Lock,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { detectAndParse, generateReport } from "@workspace/aiensie-engine";
+import { detectAndParse, generateReport, SAMPLE_TRADES } from "@workspace/aiensie-engine";
 import type { AiensieReport } from "@workspace/aiensie-engine";
 import { ScoreReport } from "@/components/report/ScoreReport";
 
@@ -37,11 +38,11 @@ type Phase =
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const INITIAL_STEPS: ProcessingStep[] = [
-  { id: 1, title: "Reading trade history",        description: "Parsing and validating your trading data",         status: "pending" },
-  { id: 2, title: "Detecting exchange format",     description: "Identifying CSV structure and data source",         status: "pending" },
-  { id: 3, title: "Normalizing trades",           description: "Standardizing records for cross-asset analysis",    status: "pending" },
-  { id: 4, title: "Calculating risk metrics",     description: "Analyzing position sizing and exposure patterns",   status: "pending" },
-  { id: 5, title: "Generating Aiensie Score",     description: "Computing your comprehensive behavioral assessment",status: "pending" },
+  { id: 1, title: "Reading trade history",        description: "Parsing and validating your trading data",          status: "pending" },
+  { id: 2, title: "Detecting exchange format",     description: "Identifying CSV structure and data source",          status: "pending" },
+  { id: 3, title: "Normalizing trades",           description: "Standardizing records for cross-asset analysis",     status: "pending" },
+  { id: 4, title: "Calculating risk metrics",     description: "Analyzing position sizing and exposure patterns",    status: "pending" },
+  { id: 5, title: "Generating Aiensie Score",     description: "Computing your comprehensive behavioral assessment", status: "pending" },
 ];
 
 const MARKET_GROUPS = [
@@ -68,10 +69,10 @@ function delay(ms: number): Promise<void> {
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function AssessmentPage() {
-  const [file, setFile]       = useState<File | null>(null);
+  const [file, setFile]           = useState<File | null>(null);
   const [isDragging, setDragging] = useState(false);
-  const [phase, setPhase]     = useState<Phase>({ name: "upload" });
-  const [steps, setSteps]     = useState<ProcessingStep[]>(INITIAL_STEPS);
+  const [phase, setPhase]         = useState<Phase>({ name: "upload" });
+  const [steps, setSteps]         = useState<ProcessingStep[]>(INITIAL_STEPS);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // ── File handling ──────────────────────────────────────────────────────────
@@ -110,17 +111,19 @@ export default function AssessmentPage() {
       // ── Step 1: Read file ──
       setStepStatus(0, "processing");
       const [text] = await Promise.all([readFileText(csvFile), delay(500)]);
+      console.log("[Aiensie] File read complete — size:", text.length, "chars");
       setStepStatus(0, "complete");
 
-      // ── Step 2: Detect exchange ──
+      // ── Step 2: Detect exchange & parse ──
       setStepStatus(1, "processing");
       const parseResult = await new Promise<ReturnType<typeof detectAndParse>>(
         (resolve, reject) => {
           Papa.parse<Record<string, string>>(text, {
-            header:          true,
-            skipEmptyLines:  true,
+            header:         true,
+            skipEmptyLines: true,
             complete: (results) => {
               try {
+                console.log("[Aiensie] PapaParse complete — rows:", results.data.length);
                 resolve(detectAndParse(results.data));
               } catch (e) {
                 reject(e);
@@ -131,12 +134,23 @@ export default function AssessmentPage() {
         }
       );
       await delay(350);
+
+      console.log("[Aiensie] Parse result:", {
+        exchange:   parseResult.exchange,
+        label:      parseResult.exchangeLabel,
+        trades:     parseResult.tradeCount,
+        skipped:    parseResult.skippedRows,
+        warnings:   parseResult.warnings,
+      });
+
       setStepStatus(1, "complete");
 
-      if (parseResult.exchange === "unknown") {
+      // ── Only fail on truly unsupported format (0 trades) ──
+      if (parseResult.trades.length === 0) {
+        const headers = parseResult.warnings.join(" ");
         setPhase({
           name:    "error",
-          message: "Unsupported CSV format. We currently support Binance, Bybit, OKX, and Hyperliquid exports. More integrations coming soon.",
+          message: `Unsupported CSV format — no valid trades could be parsed. ${headers}\n\nMake sure your CSV includes at least a symbol, side/direction, and PnL column.`,
         });
         return;
       }
@@ -144,7 +158,7 @@ export default function AssessmentPage() {
       if (parseResult.trades.length < 5) {
         setPhase({
           name:    "error",
-          message: `Only ${parseResult.trades.length} completed trade${parseResult.trades.length === 1 ? "" : "s"} found in your ${parseResult.exchangeLabel} export. Please ensure you export your full closed trade history.`,
+          message: `Only ${parseResult.trades.length} completed trade${parseResult.trades.length === 1 ? "" : "s"} found in your ${parseResult.exchangeLabel} export. Please ensure you export your full closed trade history (at least 5 trades required).`,
         });
         return;
       }
@@ -162,10 +176,22 @@ export default function AssessmentPage() {
       // ── Step 5: Score ──
       setStepStatus(4, "processing");
       const report = generateReport(parseResult.trades);
+
+      console.log("[Aiensie] Generated report:", {
+        aiensieScore:           report.aiensieScore,
+        label:                  report.label,
+        traderType:             report.traderType,
+        disciplineScore:        report.scores.disciplineScore,
+        riskControlScore:       report.scores.riskControlScore,
+        consistencyScore:       report.scores.consistencyScore,
+        emotionalStabilityScore:report.scores.emotionalStabilityScore,
+        decisionQualityScore:   report.scores.decisionQualityScore,
+        detectedPatterns:       report.detectedPatterns.map((p) => `${p.name} (${p.severity})`),
+      });
+
       await delay(800);
       setStepStatus(4, "complete");
 
-      // Small pause so user sees all steps complete before transitioning
       await delay(600);
       setPhase({
         name:       "complete",
@@ -174,11 +200,56 @@ export default function AssessmentPage() {
         tradeCount: parseResult.tradeCount,
       });
     } catch (err) {
+      console.error("[Aiensie] Processing error:", err);
       setPhase({
         name:    "error",
         message: "Failed to process your CSV. Please check the file and try again.",
       });
     }
+  };
+
+  // ── Sample mode ────────────────────────────────────────────────────────────
+
+  const runSampleMode = async () => {
+    setFile(null);
+    setUploadError(null);
+    setPhase({ name: "processing" });
+    setSteps(INITIAL_STEPS);
+
+    console.log("[Aiensie] Sample mode — loading", SAMPLE_TRADES.length, "mock trades");
+
+    await delay(400);
+    setStepStatus(0, "complete");
+
+    await delay(350);
+    setStepStatus(1, "complete");
+
+    await delay(600);
+    setStepStatus(2, "complete");
+
+    await delay(700);
+    setStepStatus(3, "complete");
+
+    setStepStatus(4, "processing");
+    const report = generateReport(SAMPLE_TRADES);
+
+    console.log("[Aiensie] Sample report:", {
+      aiensieScore:     report.aiensieScore,
+      label:            report.label,
+      traderType:       report.traderType,
+      detectedPatterns: report.detectedPatterns.map((p) => `${p.name} (${p.severity})`),
+    });
+
+    await delay(800);
+    setStepStatus(4, "complete");
+    await delay(600);
+
+    setPhase({
+      name:       "complete",
+      report,
+      exchange:   "Sample Data",
+      tradeCount: SAMPLE_TRADES.length,
+    });
   };
 
   const handleStartAssessment = () => {
@@ -260,7 +331,7 @@ export default function AssessmentPage() {
                     </div>
                   ))}
                   <p className="text-[11px] text-muted-foreground pt-1 border-t border-border/40">
-                    More integrations coming soon.
+                    More integrations coming soon. Generic CSV with symbol, side &amp; PnL columns also supported.
                   </p>
                 </div>
               </div>
@@ -335,7 +406,7 @@ export default function AssessmentPage() {
                 </div>
               )}
 
-              {/* CTA */}
+              {/* Primary CTA */}
               <Button
                 onClick={handleStartAssessment}
                 disabled={!file}
@@ -344,6 +415,26 @@ export default function AssessmentPage() {
                 Analyze My Trading Behavior
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
+
+              {/* Sample mode divider */}
+              <div className="relative my-6 flex items-center">
+                <div className="flex-1 border-t border-border/60" />
+                <span className="mx-4 text-xs text-muted-foreground">or try a demo</span>
+                <div className="flex-1 border-t border-border/60" />
+              </div>
+
+              {/* Sample data button */}
+              <Button
+                variant="outline"
+                onClick={runSampleMode}
+                className="w-full h-12 text-base border-primary/30 hover:border-primary/60 hover:bg-primary/5"
+              >
+                <Sparkles className="w-4 h-4 mr-2 text-primary" />
+                Use Sample Trading Data
+              </Button>
+              <p className="text-center text-xs text-muted-foreground mt-2">
+                See a full assessment using 80 pre-built mock trades — no CSV required.
+              </p>
 
               {/* Export instructions */}
               <div className="mt-10 text-center">
@@ -427,13 +518,17 @@ export default function AssessmentPage() {
                 <AlertCircle className="w-8 h-8 text-destructive" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">Unable to Process File</h3>
-              <p className="text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
+              <p className="text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed whitespace-pre-line">
                 {phase.message}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button onClick={resetUpload} className="glow-primary">
                   Try Another File
                   <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+                <Button variant="outline" onClick={runSampleMode}>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Use Sample Data Instead
                 </Button>
                 <Button variant="outline" asChild>
                   <Link href="/">Return Home</Link>
