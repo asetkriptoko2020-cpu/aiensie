@@ -327,46 +327,26 @@ function BehavioralIntelligenceSummary({ report }: { report: AiensieReport }) {
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, interpretation }: {
-  label: string; value: string; interpretation: string;
+function StatCard({ label, value, sub }: {
+  label: string; value: string; sub?: string;
 }) {
   return (
     <div className="bg-card/60 rounded-xl border border-border/40 p-3 text-center flex flex-col gap-0.5">
-      <p className="text-xl font-semibold text-foreground tabular-nums">{value}</p>
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="text-[10px] text-muted-foreground/50 leading-snug mt-0.5">{interpretation}</p>
+      <p className="text-xl font-semibold text-foreground tabular-nums leading-tight">{value}</p>
+      {sub && <p className="text-xs font-medium text-muted-foreground/70 tabular-nums">{sub}</p>}
+      <p className="text-[11px] text-muted-foreground mt-0.5">{label}</p>
     </div>
   );
 }
 
 // ── Helpers: human-readable metric interpretations ────────────────────────────
 
-function winRateInterpretation(rate: number): string {
-  if (rate >= 0.60) return "You win more often than most — a genuine edge.";
-  if (rate >= 0.50) return "More than half your trades are profitable.";
-  if (rate >= 0.40) return "Under half your trades land — sizing becomes critical.";
-  return "Most trades end in a loss — this needs addressing first.";
-}
-
-function payoffInterpretation(ratio: number): string {
-  if (ratio >= 2.0) return "Your winners are over twice the size of your losers.";
-  if (ratio >= 1.5) return "Wins are meaningfully larger than losses — healthy edge.";
-  if (ratio >= 1.0) return "Wins and losses are nearly the same size.";
-  return "Losses are currently running larger than your wins.";
-}
-
-function profitEfficiencyInterpretation(pf: number): string {
-  if (pf >= 2.0) return "Your strategy is generating efficient, consistent profits.";
-  if (pf >= 1.5) return "Profits are clearly outpacing losses — solid foundation.";
-  if (pf >= 1.0) return "Hovering near breakeven — the edge needs sharpening.";
-  return "Trading is not yet consistently profitable overall.";
-}
-
-function streakInterpretation(n: number): string {
-  if (n <= 2) return "Losing streaks remain short and emotionally manageable.";
-  if (n <= 4) return "Normal losing runs — resilience is the deciding factor.";
-  if (n <= 7) return "Extended streaks — watch how they affect your next decisions.";
-  return "Long losing runs — your psychology is under real pressure.";
+function formatMoney(amount: number): string {
+  const abs = Math.abs(amount);
+  if (abs >= 10000) return `$${(abs / 1000).toFixed(1)}k`;
+  if (abs >= 100)   return `$${Math.round(abs)}`;
+  if (abs >= 10)    return `$${abs.toFixed(1)}`;
+  return `$${abs.toFixed(2)}`;
 }
 
 // ── Strength / Weakness item ──────────────────────────────────────────────────
@@ -418,10 +398,11 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  const winRatePct   = `${(metrics.winRate * 100).toFixed(1)}%`;
-  const payoffRatio  = metrics.payoffRatio.toFixed(2);
-  const profitFactor = metrics.profitFactor.toFixed(2);
-  const maxStreak    = String(metrics.maxConsecutiveLosses);
+  const winRatePct    = `${(metrics.winRate * 100).toFixed(1)}%`;
+  const avgWinStr     = `+${formatMoney(metrics.averageWin)}`;
+  const avgLossStr    = `-${formatMoney(Math.abs(metrics.averageLoss))}`;
+  const profitFactor  = metrics.profitFactor.toFixed(2);
+  const maxStreak     = String(metrics.maxConsecutiveLosses);
 
   const highSeverityCount   = detectedPatterns.filter((p) => p.severity === "high").length;
   const mediumSeverityCount = detectedPatterns.filter((p) => p.severity === "medium").length;
@@ -455,22 +436,19 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
           <StatCard
             label="Win Rate"
             value={winRatePct}
-            interpretation={winRateInterpretation(metrics.winRate)}
           />
           <StatCard
-            label="Avg Win vs Loss"
-            value={`${payoffRatio}×`}
-            interpretation={payoffInterpretation(metrics.payoffRatio)}
+            label="Avg Win / Avg Loss"
+            value={avgWinStr}
+            sub={avgLossStr}
           />
           <StatCard
-            label="Profit Efficiency"
-            value={profitFactor}
-            interpretation={profitEfficiencyInterpretation(metrics.profitFactor)}
+            label={`Earned per $1 Lost`}
+            value={`$${profitFactor}`}
           />
           <StatCard
             label="Worst Losing Streak"
             value={`${maxStreak} trades`}
-            interpretation={streakInterpretation(metrics.maxConsecutiveLosses)}
           />
         </div>
       </div>

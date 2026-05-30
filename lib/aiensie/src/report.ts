@@ -20,22 +20,82 @@ function scoreLabel(score: number): ScoreLabel {
   return "Poor";
 }
 
-function traderType(scores: AiensieScores): string {
-  const { disciplineScore, riskControlScore, emotionalStabilityScore, decisionQualityScore } = scores;
+function traderType(
+  overall: number,
+  scores: AiensieScores,
+  metrics: TradeMetrics,
+  patterns: DetectedPattern[],
+): string {
+  const { disciplineScore, riskControlScore, emotionalStabilityScore, decisionQualityScore, consistencyScore } = scores;
+  const highSeverityCount = patterns.filter((p) => p.severity === "high").length;
+  const hasRevenge        = patterns.some((p) => p.name === "Revenge Trading Risk");
 
-  if (disciplineScore >= 75 && riskControlScore >= 75) return "Systematic Trader";
-  if (emotionalStabilityScore < 55)                    return "Emotional Trader";
-  if (decisionQualityScore >= 75)                      return "Strategic Trader";
-  if (riskControlScore < 55)                           return "Risk-Unaware Trader";
+  // ── Elite (85+) ─────────────────────────────────────────────────────────────
+  if (overall >= 85) return "Institutional Mindset";
+
+  // ── Strong (70–84) ───────────────────────────────────────────────────────────
+  if (overall >= 70) {
+    if (disciplineScore >= 75 && consistencyScore >= 75) return "Systematic Trader";
+    if (decisionQualityScore >= 75 && riskControlScore >= 70) return "Strategic Trader";
+    if (riskControlScore >= 75) return "Risk-Aware Trader";
+    return "Systematic Trader";
+  }
+
+  // ── Solid mid (55–69) ────────────────────────────────────────────────────────
+  if (overall >= 55) {
+    if (disciplineScore >= 65 && consistencyScore >= 65) return "Structured Trader";
+    if (metrics.winRate >= 0.55 && metrics.payoffRatio >= 1.5) return "Selective Trader";
+    if (decisionQualityScore >= 65) return "Strategic Trader";
+    return "Developing Trader";
+  }
+
+  // ── Lower-mid (40–54) ────────────────────────────────────────────────────────
+  // Emotional Trader requires all four conditions simultaneously
+  if (overall >= 40) {
+    const isEmotional =
+      emotionalStabilityScore < 50 &&
+      metrics.profitFactor < 1.2   &&
+      disciplineScore < 50         &&
+      highSeverityCount >= 1       &&
+      hasRevenge;
+    if (isEmotional) return "Emotional Trader";
+    if (metrics.payoffRatio >= 1.5 && metrics.winRate >= 0.45) return "Momentum Trader";
+    return "Developing Trader";
+  }
+
+  // ── Poor (<40) ───────────────────────────────────────────────────────────────
+  const isEmotional =
+    emotionalStabilityScore < 45 &&
+    metrics.profitFactor < 1.0   &&
+    disciplineScore < 45         &&
+    highSeverityCount >= 1;
+  if (isEmotional) return "Emotional Trader";
   return "Developing Trader";
 }
 
 function persona(overall: number, type: string): string {
-  if (overall >= 85) return "You trade with the precision and discipline of an institutional operator.";
-  if (overall >= 70) return "Solid foundations and a real edge — a few targeted improvements could take you to the next level.";
-  if (overall >= 55) return "You have identifiable strengths, but some behavioral habits are holding back your potential.";
-  if (overall >= 40) return "You react more than you plan — your emotions are influencing your trades more than your strategy.";
-  return `You're in early-stage development. The habits you build now will define your trajectory as a trader.`;
+  switch (type) {
+    case "Institutional Mindset":
+      return "You trade with the precision and discipline of an institutional operator. The behavioral data reflects habits most retail traders never develop.";
+    case "Systematic Trader":
+      return "Your approach is structured and repeatable — you follow a process rather than reacting to the market. That consistency is your real edge.";
+    case "Strategic Trader":
+      return "You make high-quality decisions under pressure. Your edge comes from selectivity and sound execution, not just frequency.";
+    case "Risk-Aware Trader":
+      return "You manage your downside well and understand the relationship between risk and reward. Refining execution will unlock the next level.";
+    case "Structured Trader":
+      return "You have a working framework in place. The habits are forming — sharpening your consistency will convert potential into reliable performance.";
+    case "Selective Trader":
+      return "You pick your spots carefully and make them count. Maintaining this discipline under pressure is what separates good traders from great ones.";
+    case "Momentum Trader":
+      return "You capitalize on market moves with conviction. Managing the downside of that approach is the key to sustainable, compounding results.";
+    case "Developing Trader":
+      return "The foundation is being built. Every trade you analyze is a step closer to a repeatable, reliable edge.";
+    case "Emotional Trader":
+      return "Emotions are currently the primary driver of your decisions — especially after losses. Recognizing this clearly is the most important first step.";
+    default:
+      return "Your trading profile is in development. The data gives you a clear picture of what to build on and what to address next.";
+  }
 }
 
 // ── Strengths & weaknesses ────────────────────────────────────────────────────
@@ -130,7 +190,7 @@ export function generateReport(trades: Trade[]): AiensieReport {
   const scores  = computeScores(metrics, patterns);
   const overall = computeAiensieScore(scores);
   const label   = scoreLabel(overall);
-  const type    = traderType(scores);
+  const type    = traderType(overall, scores, metrics, patterns);
 
   return {
     aiensieScore:     overall,
