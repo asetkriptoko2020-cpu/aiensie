@@ -9,9 +9,8 @@ import {
   ChevronRight, Printer, TrendingDown, Info,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import {
-  MOCK_USER, MOCK_REPORTS, SCORE_TREND,
-} from "@/components/dashboard/mock-data";
+import { MOCK_USER } from "@/components/dashboard/mock-data";
+import { useReports } from "@/lib/use-reports";
 import { MarketFilter, ActiveMarket } from "@/components/dashboard/market-filter";
 import { Button } from "@/components/ui/button";
 import { generateSmartAlerts } from "@/lib/smart-alerts";
@@ -60,9 +59,11 @@ const ALERT_META: Record<string, { color: string; bg: string; border: string; la
 export default function DashboardOverview() {
   const [market, setMarket] = useState<ActiveMarket>("All");
 
+  const { reports } = useReports();
+
   const filteredReports = market === "All"
-    ? MOCK_REPORTS
-    : MOCK_REPORTS.filter((r) => r.assetClass === market);
+    ? reports
+    : reports.filter((r) => r.assetClass === market);
 
   const hasReports = filteredReports.length > 0;
   const latest   = hasReports ? filteredReports[filteredReports.length - 1] : null;
@@ -77,11 +78,12 @@ export default function DashboardOverview() {
     score: r.aiensieScore,
   }));
 
+  const thisMonthPrefix = new Date().toISOString().slice(0, 7);
   const kpis = [
     { label: "Total Reports",  value: String(filteredReports.length), icon: FileText,   color: "#06b6d4" },
     { label: "Average Score",  value: filteredReports.length > 0 ? String(Math.round(filteredReports.reduce((s, r) => s + r.aiensieScore, 0) / filteredReports.length)) : "—", icon: TrendingUp, color: "#10b981" },
     { label: "Best Score",     value: filteredReports.length > 0 ? String(Math.max(...filteredReports.map(r => r.aiensieScore))) : "—", icon: ArrowUpRight, color: "#a78bfa" },
-    { label: "This Month",     value: `${filteredReports.filter(r => r.date.startsWith("2024-05")).length} uploads`, icon: Upload, color: "#f59e0b" },
+    { label: "This Month",     value: `${filteredReports.filter(r => r.date.startsWith(thisMonthPrefix)).length} uploads`, icon: Upload, color: "#f59e0b" },
   ];
 
   return (

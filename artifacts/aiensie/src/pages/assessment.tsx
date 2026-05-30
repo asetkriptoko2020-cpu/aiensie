@@ -17,6 +17,7 @@ import { detectAndParse, generateReport, SAMPLE_TRADES } from "@workspace/aiensi
 import type { AiensieReport } from "@workspace/aiensie-engine";
 import { ScoreReport }        from "@/components/report/ScoreReport";
 import { saveReportSnapshot } from "@/lib/behavior-memory";
+import { saveFullReport }    from "@/lib/report-store";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -199,8 +200,9 @@ export default function AssessmentPage() {
       setStepStatus(4, "complete");
       await delay(600);
 
-      // ── Save snapshot to behavior memory ──
+      // ── Save to behavior memory (snapshot) and full report store ──
       saveReportSnapshot(report, parseResult.exchangeLabel, parseResult.tradeCount);
+      saveFullReport(report, parseResult.exchangeLabel, parseResult.tradeCount);
 
       setPhase({
         name:       "complete",
@@ -255,8 +257,9 @@ export default function AssessmentPage() {
     setStepStatus(4, "complete");
     await delay(600);
 
-    // Save snapshot
+    // Save snapshot and full report
     saveReportSnapshot(report, "Sample Data", SAMPLE_TRADES.length);
+    saveFullReport(report, "Sample Data", SAMPLE_TRADES.length);
 
     setPhase({
       name:       "complete",
@@ -519,12 +522,23 @@ export default function AssessmentPage() {
 
           {/* ── COMPLETE phase ── */}
           {phase.name === "complete" && (
-            <ScoreReport
-              report={phase.report}
-              exchange={phase.exchange}
-              tradeCount={phase.tradeCount}
-              onReset={resetUpload}
-            />
+            <>
+              {fromDashboard && (
+                <div className="mb-6 flex justify-start">
+                  <Link href="/dashboard/reports">
+                    <Button variant="outline" size="sm" className="gap-2 rounded-xl">
+                      ← View in Dashboard
+                    </Button>
+                  </Link>
+                </div>
+              )}
+              <ScoreReport
+                report={phase.report}
+                exchange={phase.exchange}
+                tradeCount={phase.tradeCount}
+                onReset={resetUpload}
+              />
+            </>
           )}
 
           {/* ── ERROR phase ── */}

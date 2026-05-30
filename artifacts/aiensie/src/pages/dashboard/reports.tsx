@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { FileText, Search, Lock, Zap, Calendar, Upload, Printer } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { MOCK_REPORTS, MOCK_USER } from "@/components/dashboard/mock-data";
+import { MOCK_USER } from "@/components/dashboard/mock-data";
+import { useReports } from "@/lib/use-reports";
 import { MarketFilter, ActiveMarket } from "@/components/dashboard/market-filter";
 import { Button } from "@/components/ui/button";
 
@@ -17,7 +18,9 @@ export default function ReportsPage() {
   const [market, setMarket]   = useState<ActiveMarket>("All");
   const isProUser = MOCK_USER.plan === "pro";
 
-  const filtered = MOCK_REPORTS.filter((r) => {
+  const { reports, isFromRealData } = useReports();
+
+  const filtered = reports.filter((r) => {
     const matchesMarket = market === "All" || r.assetClass === market;
     const matchesSearch =
       r.exchange.toLowerCase().includes(search.toLowerCase()) ||

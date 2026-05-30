@@ -3,6 +3,7 @@ import { Link, useParams } from "wouter";
 import { ArrowLeft, CheckCircle2, XCircle, AlertTriangle, ChevronRight, BarChart3, Brain, Zap, Printer } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { MOCK_REPORTS } from "@/components/dashboard/mock-data";
+import { getSavedReportById, savedReportToMockReport } from "@/lib/report-store";
 import { Button } from "@/components/ui/button";
 
 const DIMENSIONS = [
@@ -60,7 +61,11 @@ const SEVERITY_CONFIG = {
 
 export default function ReportDetailPage() {
   const params = useParams<{ id: string }>();
-  const report = MOCK_REPORTS.find((r) => r.id === params.id);
+  const savedLookup = params.id ? getSavedReportById(params.id) : null;
+  const report =
+    savedLookup
+      ? savedReportToMockReport(savedLookup)
+      : MOCK_REPORTS.find((r) => r.id === params.id);
 
   if (!report) {
     return (

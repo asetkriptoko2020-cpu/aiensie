@@ -5,7 +5,8 @@ import {
 } from "recharts";
 import { TrendingUp, ArrowUpRight } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { MONTHLY_DIMENSION_TREND, SCORE_TREND, MOCK_REPORTS } from "@/components/dashboard/mock-data";
+import { MONTHLY_DIMENSION_TREND } from "@/components/dashboard/mock-data";
+import { useReports } from "@/lib/use-reports";
 import { MarketFilter, ActiveMarket } from "@/components/dashboard/market-filter";
 
 const DIMENSION_COLORS: Record<string, string> = {
@@ -41,23 +42,14 @@ function ScoreTooltip({ active, payload, label }: any) {
   );
 }
 
-const first = MOCK_REPORTS[0];
-const last  = MOCK_REPORTS[MOCK_REPORTS.length - 1];
-
-const ALL_IMPROVEMENTS = [
-  { dim: "Discipline",        from: first.scores.discipline,         to: last.scores.discipline,         color: "#06b6d4" },
-  { dim: "Risk Control",      from: first.scores.riskControl,        to: last.scores.riskControl,        color: "#10b981" },
-  { dim: "Consistency",       from: first.scores.consistency,        to: last.scores.consistency,        color: "#f59e0b" },
-  { dim: "Emotional Control", from: first.scores.emotionalStability, to: last.scores.emotionalStability, color: "#a78bfa" },
-  { dim: "Decision Quality",  from: first.scores.decisionQuality,    to: last.scores.decisionQuality,    color: "#38bdf8" },
-];
-
 export default function TrendsPage() {
   const [market, setMarket] = useState<ActiveMarket>("All");
 
+  const { reports, isFromRealData } = useReports();
+
   const filteredReports = market === "All"
-    ? MOCK_REPORTS
-    : MOCK_REPORTS.filter((r) => r.assetClass === market);
+    ? reports
+    : reports.filter((r) => r.assetClass === market);
 
   const hasData = filteredReports.length > 0;
 
@@ -75,7 +67,28 @@ export default function TrendsPage() {
     { dim: "Consistency",       from: filteredFirst.scores.consistency,        to: filteredLast.scores.consistency,        color: "#f59e0b" },
     { dim: "Emotional Control", from: filteredFirst.scores.emotionalStability, to: filteredLast.scores.emotionalStability, color: "#a78bfa" },
     { dim: "Decision Quality",  from: filteredFirst.scores.decisionQuality,    to: filteredLast.scores.decisionQuality,    color: "#38bdf8" },
-  ] : ALL_IMPROVEMENTS;
+  ] : [];
+
+  // Dimension trend chart data:
+  // — real data: one point per assessment (labelled by date)
+  // — mock fallback: pre-built monthly aggregates
+  const dimensionTrend = isFromRealData
+    ? filteredReports.map((r) => ({
+        label:              new Date(r.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        "Discipline":       r.scores.discipline,
+        "Emotional Control":r.scores.emotionalStability,
+        "Risk Control":     r.scores.riskControl,
+        "Consistency":      r.scores.consistency,
+        "Decision Quality": r.scores.decisionQuality,
+      }))
+    : MONTHLY_DIMENSION_TREND.map((d) => ({
+        label:              d.month,
+        "Discipline":       d["Discipline"],
+        "Emotional Control":d["Emotional Control"],
+        "Risk Control":     d["Risk Control"],
+        "Consistency":      d["Consistency"],
+        "Decision Quality": d["Decision Quality"],
+      }));
 
   return (
     <DashboardLayout>
@@ -155,7 +168,7 @@ export default function TrendsPage() {
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={MONTHLY_DIMENSION_TREND} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                <AreaChart data={dimensionTrend} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                   <defs>
                     {Object.entries(DIMENSION_COLORS).map(([name, color]) => (
                       <linearGradient key={name} id={`grad-${name.replace(/\s/g,"")}`} x1="0" y1="0" x2="0" y2="1">
@@ -165,7 +178,7 @@ export default function TrendsPage() {
                     ))}
                   </defs>
                   <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="4 4" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fill: "oklch(0.6 0 0)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="label" tick={{ fill: "oklch(0.6 0 0)", fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis domain={[30, 90]} tick={{ fill: "oklch(0.6 0 0)", fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
