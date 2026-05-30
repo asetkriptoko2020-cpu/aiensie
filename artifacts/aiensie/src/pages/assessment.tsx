@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 import Papa from "papaparse";
 import {
   Upload,
@@ -75,7 +75,8 @@ export default function AssessmentPage() {
   const [steps, setSteps]         = useState<ProcessingStep[]>(INITIAL_STEPS);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const fromDashboard = new URLSearchParams(window.location.search).get("from") === "dashboard";
+  const search        = useSearch();
+  const fromDashboard = new URLSearchParams(search).get("from") === "dashboard";
   const exitHref      = fromDashboard ? "/dashboard" : "/";
 
   // ── File handling ──────────────────────────────────────────────────────────
