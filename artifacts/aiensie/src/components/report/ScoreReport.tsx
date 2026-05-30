@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AiensieReport, AiensieScores, DetectedPattern } from "@workspace/aiensie-engine";
-import { generateNarrative } from "@workspace/aiensie-engine";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -211,11 +210,72 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
 
 // ── Behavioral Intelligence Summary ──────────────────────────────────────────
 
+interface InsightBlock {
+  title: string;
+  text: string;
+}
+
+function buildInsightBlocks(report: AiensieReport): InsightBlock[] {
+  const { aiensieScore, scores, metrics, detectedPatterns } = report;
+
+  // Block 1 — Overall Behavior
+  const overallText =
+    aiensieScore >= 85 ? "Your trading reflects disciplined, institutional-grade habits. The behavioral foundation here is genuinely strong." :
+    aiensieScore >= 70 ? "You've built a solid foundation — largely controlled, consistent, and rational under pressure." :
+    aiensieScore >= 55 ? "You have the instincts. Some habits are quietly working against you — the edge is there, it needs protecting." :
+    aiensieScore >= 40 ? "The record shows reactive trading more than planned execution. These patterns are common and correctable." :
+                         "There's a gap between knowing what to do and doing it under pressure. The focus now is on process.";
+
+  // Block 2 — Main Risk
+  const topPattern =
+    detectedPatterns.find((p) => p.severity === "high") ??
+    detectedPatterns.find((p) => p.severity === "medium") ??
+    detectedPatterns[0];
+
+  let riskText: string;
+  if (topPattern) {
+    const name = topPattern.name;
+    riskText =
+      name === "Revenge Trading Risk"       ? "Revenge trading is your most active risk. Re-entering after losses is driven by emotion, not edge." :
+      name === "Holding Losses Too Long"    ? "Holding losers too long is compressing your results. Cutting losses faster would shift your numbers meaningfully." :
+      name === "Overconfidence After Wins"  ? "Overconfidence after winning streaks is increasing your exposure at exactly the wrong moment." :
+      name === "Overtrading"                ? `Trading too frequently at ${metrics.tradesPerActiveDay.toFixed(1)} trades/day is diluting your edge. Selectivity compounds.` :
+      name === "Erratic Position Sizing"    ? "Inconsistent sizing means results depend more on luck than process. A fixed risk-per-trade rule fixes this immediately." :
+      name === "Reliance on a Few Big Wins" ? "Your results lean heavily on a handful of large wins. The edge may be less repeatable than it appears." :
+                                              topPattern.description;
+  } else {
+    const dimScores: [keyof AiensieScores, string][] = [
+      ["disciplineScore",         "No major patterns detected. Greater trade selectivity is your highest-leverage next step."],
+      ["riskControlScore",        "No major patterns detected. Improving your win-to-loss size ratio is the key adjustment."],
+      ["consistencyScore",        "No major patterns detected. A more repeatable process would stabilize your results significantly."],
+      ["emotionalStabilityScore", "No major patterns detected. Structured post-loss rules would reduce emotional variance in decisions."],
+      ["decisionQualityScore",    "No major patterns detected. Entry and exit refinement is the clearest path to improvement."],
+    ];
+    const weakest = dimScores.reduce(
+      (min, curr) => scores[curr[0]] < scores[min[0]] ? curr : min,
+      dimScores[0],
+    );
+    riskText = weakest[1];
+  }
+
+  // Block 3 — Coaching Insight
+  const coachText =
+    aiensieScore >= 70 ? "The gap between here and consistently strong is narrow — stay process-focused and don't optimise for recent results." :
+    aiensieScore >= 50 ? "The issues are specific, not systemic. One or two targeted changes can shift the trajectory quickly." :
+                         "Start with process, not outcomes. Getting sizing and loss management right changes everything else downstream.";
+
+  return [
+    { title: "Overall Behavior",  text: overallText },
+    { title: "Main Risk",         text: riskText    },
+    { title: "Coaching Insight",  text: coachText   },
+  ];
+}
+
 function BehavioralIntelligenceSummary({ report }: { report: AiensieReport }) {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const { paragraphs } = generateNarrative(report);
+  const blocks = buildInsightBlocks(report);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -230,27 +290,30 @@ function BehavioralIntelligenceSummary({ report }: { report: AiensieReport }) {
     <div ref={ref} className="glass rounded-2xl p-6 overflow-hidden">
       <SectionHeader label="Behavioral Intelligence Summary" icon={Brain} />
 
-      <div className="space-y-4">
-        {paragraphs.map((para, i) => (
-          <p
-            key={i}
-            className="text-sm text-foreground/75 leading-[1.85] tracking-[0.01em]"
+      <div className="space-y-3">
+        {blocks.map((block, i) => (
+          <div
+            key={block.title}
+            className="rounded-xl bg-card/50 border border-border/40 p-4"
             style={{
               opacity:    visible ? 1 : 0,
-              transform:  visible ? "translateY(0)" : "translateY(10px)",
-              transition: `opacity 0.55s ease ${i * 160}ms, transform 0.55s ease ${i * 160}ms`,
+              transform:  visible ? "translateY(0)" : "translateY(8px)",
+              transition: `opacity 0.45s ease ${i * 120}ms, transform 0.45s ease ${i * 120}ms`,
             }}
           >
-            {para}
-          </p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1.5">
+              {block.title}
+            </p>
+            <p className="text-sm text-foreground/80 leading-relaxed">{block.text}</p>
+          </div>
         ))}
       </div>
 
       <div
-        className="mt-5 pt-4 border-t border-border/30 flex items-center gap-2"
+        className="mt-4 pt-4 border-t border-border/30 flex items-center gap-2"
         style={{
           opacity:    visible ? 1 : 0,
-          transition: `opacity 0.5s ease ${paragraphs.length * 160 + 100}ms`,
+          transition: `opacity 0.45s ease ${blocks.length * 120 + 80}ms`,
         }}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-primary/50" />
@@ -279,31 +342,31 @@ function StatCard({ label, value, interpretation }: {
 // ── Helpers: human-readable metric interpretations ────────────────────────────
 
 function winRateInterpretation(rate: number): string {
-  if (rate >= 0.60) return "You find your edge more often than most — a real sign of selectivity";
-  if (rate >= 0.50) return "More than half your trades are working in your favour";
-  if (rate >= 0.40) return "Most trades aren't landing yet — but strong sizing can still make this work";
-  return "The majority of trades are ending at a loss — this is the first thing worth addressing";
+  if (rate >= 0.60) return "You win more often than most — a genuine edge.";
+  if (rate >= 0.50) return "More than half your trades are profitable.";
+  if (rate >= 0.40) return "Under half your trades land — sizing becomes critical.";
+  return "Most trades end in a loss — this needs addressing first.";
 }
 
 function payoffInterpretation(ratio: number): string {
-  if (ratio >= 2.0) return "When you win, you win big — your winners are doing the heavy lifting";
-  if (ratio >= 1.5) return "Your wins are meaningfully larger than your losses — that's a healthy edge";
-  if (ratio >= 1.0) return "Wins and losses are roughly the same size — your win rate carries most of the weight";
-  return "Your losses are currently bigger than your wins — even a good win rate struggles to overcome this";
+  if (ratio >= 2.0) return "Your winners are over twice the size of your losers.";
+  if (ratio >= 1.5) return "Wins are meaningfully larger than losses — healthy edge.";
+  if (ratio >= 1.0) return "Wins and losses are nearly the same size.";
+  return "Losses are currently running larger than your wins.";
 }
 
 function profitEfficiencyInterpretation(pf: number): string {
-  if (pf >= 2.0) return "For every dollar you give back, you're keeping more than two — that's efficient trading";
-  if (pf >= 1.5) return "Your profitable trades are clearly outpacing the damage from losing ones";
-  if (pf >= 1.0) return "You're hovering near breakeven — the foundation is there, but the edge needs sharpening";
-  return "Your current trading results are still struggling to stay consistently profitable over time";
+  if (pf >= 2.0) return "Your strategy is generating efficient, consistent profits.";
+  if (pf >= 1.5) return "Profits are clearly outpacing losses — solid foundation.";
+  if (pf >= 1.0) return "Hovering near breakeven — the edge needs sharpening.";
+  return "Trading is not yet consistently profitable overall.";
 }
 
 function streakInterpretation(n: number): string {
-  if (n <= 2) return "Your losses rarely chain together — that's a sign of real psychological resilience";
-  if (n <= 4) return "A normal run for most traders — how you respond to it matters more than the streak itself";
-  if (n <= 7) return "This kind of run puts emotional pressure on any trader — worth watching how it affects your next decisions";
-  return "Extended losing streaks at this level can quietly reshape how you trade — often in ways that are hard to notice in the moment";
+  if (n <= 2) return "Losing streaks remain short and emotionally manageable.";
+  if (n <= 4) return "Normal losing runs — resilience is the deciding factor.";
+  if (n <= 7) return "Extended streaks — watch how they affect your next decisions.";
+  return "Long losing runs — your psychology is under real pressure.";
 }
 
 // ── Strength / Weakness item ──────────────────────────────────────────────────
