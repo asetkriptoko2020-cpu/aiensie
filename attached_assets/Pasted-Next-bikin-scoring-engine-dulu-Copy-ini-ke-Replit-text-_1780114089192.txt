@@ -1,0 +1,95 @@
+Next bikin **scoring engine dulu**. Copy ini ke Replit:
+
+```text
+Build the first version of the Aiensie scoring engine.
+
+Do NOT redesign the UI.
+Do NOT touch the landing page design.
+Only add the backend logic files for scoring.
+
+Create this folder:
+
+lib/aiensie/
+
+Create these files:
+- types.ts
+- sampleTrades.ts
+- metrics.ts
+- patterns.ts
+- scoring.ts
+- report.ts
+
+Use TypeScript.
+
+The normalized trade format should include:
+- id
+- symbol
+- side: long | short | buy | sell
+- entryTime
+- exitTime
+- entryPrice
+- exitPrice
+- positionSize
+- pnl
+- fees optional
+- leverage optional
+- platform optional
+- assetClass optional
+
+Implement metrics:
+- totalTrades
+- winRate
+- averageWin
+- averageLoss
+- payoffRatio
+- profitFactor
+- expectancy
+- averageHoldingMinutes
+- tradesPerActiveDay
+- positionSizeVariability
+- topSymbolExposure
+- maxConsecutiveLosses
+- profitDependencyTop10Percent
+
+Implement behavioral patterns:
+- Revenge Trading Risk
+- Overtrading
+- Position Size Instability
+- Loss Holding Bias
+- Overconfidence After Wins
+- Profit Dependency
+
+Implement scores:
+- disciplineScore
+- riskControlScore
+- consistencyScore
+- emotionalStabilityScore
+- decisionQualityScore
+- final aiensieScore
+
+Final output should be a clean JSON report:
+
+{
+  aiensieScore,
+  label,
+  traderType,
+  persona,
+  scores,
+  metrics,
+  detectedPatterns,
+  strengths,
+  weaknesses,
+  actionPlan
+}
+
+Also create sampleTrades.ts with fake sample trades so I can test the scoring engine without uploading CSV yet.
+
+After building the files, connect it lightly to the UI by showing sample Aiensie Score data from the scoring engine instead of hardcoded numbers.
+
+Important:
+- Keep all UI visuals exactly the same
+- Only replace static score values with values generated from sampleTrades
+- Keep code clean, modular, and easy to connect to CSV upload later
+```
+
+Ini belum upload CSV beneran ya. Ini bikin **otak AIENSIE dulu** pakai dummy data, biar UI lu mulai “hidup”.

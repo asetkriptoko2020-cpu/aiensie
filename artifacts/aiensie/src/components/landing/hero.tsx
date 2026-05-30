@@ -4,19 +4,26 @@ import { ArrowRight, Sparkles, Shield, Target, Activity, Brain, LucideIcon } fro
 import { Button } from "@/components/ui/button";
 import { GlobeBackground } from "./globe-background";
 import { motion } from "framer-motion";
+import { generateReport } from "@workspace/aiensie-engine";
+import { SAMPLE_TRADES } from "@workspace/aiensie-engine";
+import type { AiensieReport } from "@workspace/aiensie-engine";
+
+// ── Run scoring engine once (module-level, pure computation) ─────────────────
+const REPORT: AiensieReport = generateReport(SAMPLE_TRADES);
 
 // ── Score ring constants ──────────────────────────────────────────────────────
-const RADIUS       = 88;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;   // ≈ 552.92
-const SCORE        = 75;
-const ARC_LENGTH   = (SCORE / 100) * CIRCUMFERENCE;
-const TARGET_OFFSET = CIRCUMFERENCE - ARC_LENGTH;
+const RADIUS        = 88;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+function ringOffset(score: number): number {
+  return CIRCUMFERENCE - (score / 100) * CIRCUMFERENCE;
+}
 
 const RING_DURATION = 1.8;
 const RING_DELAY    = 0.3;
 const RING_EASE: [number, number, number, number] = [0.34, 1.06, 0.64, 1];
 
-// ── Metric card data ──────────────────────────────────────────────────────────
+// ── Metric card data (driven by report) ──────────────────────────────────────
 interface MetricDef {
   icon: LucideIcon;
   label: string;
@@ -24,65 +31,65 @@ interface MetricDef {
   iconBg: string;
   iconColor: string;
   glowColor: string;
-  delay: number;          // count-up start delay (s)
+  delay: number;
 }
 
-const METRICS: MetricDef[] = [
-  {
-    icon: Target,
-    label: "Discipline",
-    value: 82,
-    iconBg: "bg-primary/20",
-    iconColor: "text-primary",
-    glowColor: "oklch(0.7 0.15 250)",
-    delay: 0.6,
-  },
-  {
-    icon: Shield,
-    label: "Risk Control",
-    value: 68,
-    iconBg: "bg-accent/20",
-    iconColor: "text-accent",
-    glowColor: "oklch(0.65 0.2 170)",
-    delay: 0.75,
-  },
-  {
-    icon: Activity,
-    label: "Consistency",
-    value: 78,
-    iconBg: "bg-success/20",
-    iconColor: "text-success",
-    glowColor: "oklch(0.7 0.18 145)",
-    delay: 0.9,
-  },
-  {
-    icon: Brain,
-    label: "Emotional Stability",
-    value: 71,
-    iconBg: "bg-warning/20",
-    iconColor: "text-warning",
-    glowColor: "oklch(0.75 0.12 80)",
-    delay: 1.05,
-  },
-];
+function buildMetrics(report: AiensieReport): MetricDef[] {
+  const s = report.scores;
+  return [
+    {
+      icon: Target,
+      label: "Discipline",
+      value: s.disciplineScore,
+      iconBg: "bg-primary/20",
+      iconColor: "text-primary",
+      glowColor: "oklch(0.7 0.15 250)",
+      delay: 0.6,
+    },
+    {
+      icon: Shield,
+      label: "Risk Control",
+      value: s.riskControlScore,
+      iconBg: "bg-accent/20",
+      iconColor: "text-accent",
+      glowColor: "oklch(0.65 0.2 170)",
+      delay: 0.75,
+    },
+    {
+      icon: Activity,
+      label: "Consistency",
+      value: s.consistencyScore,
+      iconBg: "bg-success/20",
+      iconColor: "text-success",
+      glowColor: "oklch(0.7 0.18 145)",
+      delay: 0.9,
+    },
+    {
+      icon: Brain,
+      label: "Emotional Stability",
+      value: s.emotionalStabilityScore,
+      iconBg: "bg-warning/20",
+      iconColor: "text-warning",
+      glowColor: "oklch(0.75 0.12 80)",
+      delay: 1.05,
+    },
+  ];
+}
 
-// ── MetricCard sub-component ──────────────────────────────────────────────────
+// ── MetricCard ────────────────────────────────────────────────────────────────
 function MetricCard({ icon: Icon, label, value, iconBg, iconColor, glowColor, delay }: MetricDef) {
-  const [display, setDisplay] = useState(0);
+  const [display, setDisplay]   = useState(0);
   const [counting, setCounting] = useState(true);
   const rafRef = useRef<number>(0);
-  const DURATION = 1100; // ms
+  const DURATION = 1100;
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       let start: number | null = null;
-
       const step = (ts: number) => {
         if (start === null) start = ts;
-        const elapsed = ts - start;
-        const progress = Math.min(elapsed / DURATION, 1);
-        // Cubic ease-out
-        const eased = 1 - Math.pow(1 - progress, 3);
+        const progress = Math.min((ts - start) / DURATION, 1);
+        const eased    = 1 - Math.pow(1 - progress, 3);
         setDisplay(Math.round(eased * value));
         if (progress < 1) {
           rafRef.current = requestAnimationFrame(step);
@@ -90,7 +97,6 @@ function MetricCard({ icon: Icon, label, value, iconBg, iconColor, glowColor, de
           setCounting(false);
         }
       };
-
       rafRef.current = requestAnimationFrame(step);
     }, delay * 1000);
 
@@ -100,46 +106,30 @@ function MetricCard({ icon: Icon, label, value, iconBg, iconColor, glowColor, de
     };
   }, [value, delay]);
 
-  // CSS text-shadow pulse while counting
   const numStyle = counting
-    ? {
-        textShadow: `0 0 10px ${glowColor}99, 0 0 20px ${glowColor}44`,
-        transition: "text-shadow 0.3s ease",
-      }
-    : {
-        textShadow: "none",
-        transition: "text-shadow 0.5s ease",
-      };
+    ? { textShadow: `0 0 10px ${glowColor}99, 0 0 20px ${glowColor}44`, transition: "text-shadow 0.3s ease" }
+    : { textShadow: "none", transition: "text-shadow 0.5s ease" };
 
   return (
     <motion.div
       className="relative flex items-center gap-3 p-3 rounded-xl bg-secondary/50 overflow-hidden cursor-default"
-      whileHover={{
-        boxShadow: `0 0 0 1px ${glowColor}55, 0 0 18px ${glowColor}18`,
-      }}
+      whileHover={{ boxShadow: `0 0 0 1px ${glowColor}55, 0 0 18px ${glowColor}18` }}
       transition={{ duration: 0.2 }}
     >
-      {/* Shimmer sweep during count-up */}
       {counting && (
         <motion.div
           aria-hidden
           className="absolute inset-0 pointer-events-none"
           initial={{ x: "-100%" }}
           animate={{ x: "180%" }}
-          transition={{
-            duration: DURATION / 1000,
-            delay: 0,
-            ease: "easeInOut",
-          }}
+          transition={{ duration: DURATION / 1000, ease: "easeInOut" }}
           style={{
-            background:
-              "linear-gradient(90deg, transparent 0%, oklch(1 0 0 / 0.06) 50%, transparent 100%)",
+            background: "linear-gradient(90deg, transparent 0%, oklch(1 0 0 / 0.06) 50%, transparent 100%)",
             width: "60%",
           }}
         />
       )}
 
-      {/* Icon */}
       <motion.div
         className={`p-2 rounded-lg ${iconBg} flex-shrink-0`}
         whileHover={{ scale: 1.12 }}
@@ -148,7 +138,6 @@ function MetricCard({ icon: Icon, label, value, iconBg, iconColor, glowColor, de
         <Icon className={`h-4 w-4 ${iconColor}`} />
       </motion.div>
 
-      {/* Label + number */}
       <div>
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-sm font-semibold text-foreground leading-snug">
@@ -168,6 +157,11 @@ function MetricCard({ icon: Icon, label, value, iconBg, iconColor, glowColor, de
 
 // ── Hero ──────────────────────────────────────────────────────────────────────
 export function Hero() {
+  const score   = REPORT.aiensieScore;
+  const label   = REPORT.label;
+  const metrics = buildMetrics(REPORT);
+  const offset  = ringOffset(score);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       <GlobeBackground />
@@ -278,7 +272,7 @@ export function Hero() {
                       strokeDasharray={CIRCUMFERENCE}
                       style={{ opacity: 0.45 }}
                       initial={{ strokeDashoffset: CIRCUMFERENCE }}
-                      animate={{ strokeDashoffset: TARGET_OFFSET }}
+                      animate={{ strokeDashoffset: offset }}
                       transition={{ duration: RING_DURATION, delay: RING_DELAY, ease: RING_EASE }}
                     />
 
@@ -291,7 +285,7 @@ export function Hero() {
                       strokeLinecap="round"
                       strokeDasharray={CIRCUMFERENCE}
                       initial={{ strokeDashoffset: CIRCUMFERENCE }}
-                      animate={{ strokeDashoffset: TARGET_OFFSET }}
+                      animate={{ strokeDashoffset: offset }}
                       transition={{ duration: RING_DURATION, delay: RING_DELAY, ease: RING_EASE }}
                     />
 
@@ -303,11 +297,10 @@ export function Hero() {
                       fill="oklch(0.92 0.1 210)"
                       style={{
                         transformOrigin: "96px 96px",
-                        filter:
-                          "drop-shadow(0 0 6px oklch(0.7 0.15 250)) drop-shadow(0 0 12px oklch(0.65 0.2 170 / 0.8))",
+                        filter: "drop-shadow(0 0 6px oklch(0.7 0.15 250)) drop-shadow(0 0 12px oklch(0.65 0.2 170 / 0.8))",
                       }}
                       initial={{ rotate: 0, opacity: 0 }}
-                      animate={{ rotate: [0, (SCORE / 100) * 360], opacity: [0, 1, 1, 0] }}
+                      animate={{ rotate: [0, (score / 100) * 360], opacity: [0, 1, 1, 0] }}
                       transition={{
                         duration: RING_DURATION,
                         delay: RING_DELAY,
@@ -325,7 +318,7 @@ export function Hero() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5, delay: RING_DELAY + RING_DURATION * 0.6, ease: "easeOut" }}
                     >
-                      {SCORE}
+                      {score}
                     </motion.span>
                     <motion.span
                       className="text-sm text-muted-foreground"
@@ -336,20 +329,20 @@ export function Hero() {
                       /100
                     </motion.span>
                     <motion.span
-                      className="text-xs text-primary font-medium mt-1"
+                      className="text-xs text-primary font-medium mt-1 uppercase tracking-wide"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.4, delay: RING_DELAY + RING_DURATION * 0.8 }}
                     >
-                      GOOD
+                      {label}
                     </motion.span>
                   </div>
                 </div>
               </div>
 
-              {/* ── Metric cards (animated count-up) ── */}
+              {/* Metric cards */}
               <div className="grid grid-cols-2 gap-3">
-                {METRICS.map((m) => (
+                {metrics.map((m) => (
                   <MetricCard key={m.label} {...m} />
                 ))}
               </div>

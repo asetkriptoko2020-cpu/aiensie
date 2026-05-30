@@ -76,6 +76,7 @@
     "@types/three": "^0.178.1",
     "three": "^0.178.0",
     "wouter": "^3.3.5",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@workspace/aiensie-engine": "workspace:*"
   }
 }
