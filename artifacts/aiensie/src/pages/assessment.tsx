@@ -9,23 +9,9 @@ import {
   AlertCircle,
   ArrowRight,
   X,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-type Platform = {
-  id: string;
-  name: string;
-  logo: string;
-  format: string;
-};
-
-const platforms: Platform[] = [
-  { id: "binance", name: "Binance", logo: "B", format: "CSV" },
-  { id: "bybit", name: "Bybit", logo: "By", format: "CSV" },
-  { id: "okx", name: "OKX", logo: "O", format: "CSV" },
-  { id: "hyperliquid", name: "Hyperliquid", logo: "HL", format: "CSV" },
-  { id: "metatrader", name: "MetaTrader", logo: "MT", format: "CSV/HTML" },
-];
 
 type ProcessingStep = {
   id: number;
@@ -61,8 +47,22 @@ const initialSteps: ProcessingStep[] = [
   },
 ];
 
+const marketGroups = [
+  {
+    label: "CEX",
+    platforms: ["Binance", "OKX", "Bybit", "Coinbase", "KuCoin"],
+  },
+  {
+    label: "DEX / Perpetuals",
+    platforms: ["Hyperliquid", "dYdX", "GMX", "Uniswap", "Jupiter"],
+  },
+  {
+    label: "Traditional Markets",
+    platforms: ["Stocks", "Forex", "Options", "ETFs", "Futures"],
+  },
+];
+
 export default function AssessmentPage() {
-  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -83,7 +83,6 @@ export default function AssessmentPage() {
     e.preventDefault();
     setIsDragging(false);
     setError(null);
-
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       if (droppedFile.type === "text/csv" || droppedFile.name.endsWith(".csv")) {
@@ -109,16 +108,13 @@ export default function AssessmentPage() {
   const simulateProcessing = async () => {
     setIsProcessing(true);
     setError(null);
-
-    for (let i = 0; i < processingSteps.length; i++) {
+    for (let i = 0; i < initialSteps.length; i++) {
       setProcessingSteps((prev) =>
         prev.map((step, index) =>
           index === i ? { ...step, status: "processing" } : step
         )
       );
-
       await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 1000));
-
       setProcessingSteps((prev) =>
         prev.map((step, index) =>
           index === i ? { ...step, status: "complete" } : step
@@ -128,8 +124,8 @@ export default function AssessmentPage() {
   };
 
   const handleStartAssessment = () => {
-    if (!selectedPlatform || !file) {
-      setError("Please select a platform and upload your trading history");
+    if (!file) {
+      setError("Please upload your trading history CSV to continue");
       return;
     }
     simulateProcessing();
@@ -137,7 +133,6 @@ export default function AssessmentPage() {
 
   const resetUpload = () => {
     setFile(null);
-    setSelectedPlatform(null);
     setIsProcessing(false);
     setProcessingSteps(initialSteps);
     setError(null);
@@ -145,6 +140,7 @@ export default function AssessmentPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 glass">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
@@ -152,9 +148,8 @@ export default function AssessmentPage() {
               <img
                 src="/aiensie-logo.png"
                 alt="Aiensie"
-                width={32}
-                height={32}
-                className="h-8 w-8"
+                className="h-8 w-8 object-contain rounded-sm"
+                style={{ filter: "brightness(1.05)" }}
               />
               <span className="text-xl font-bold tracking-tight text-foreground">
                 Aiensie
@@ -162,7 +157,7 @@ export default function AssessmentPage() {
             </Link>
             <Link href="/">
               <Button variant="ghost" size="sm">
-                Back to Home
+                ← Back to Home
               </Button>
             </Link>
           </div>
@@ -171,6 +166,8 @@ export default function AssessmentPage() {
 
       <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
+
+          {/* Page header */}
           <div className="text-center mb-12">
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               Start Your Assessment
@@ -183,49 +180,44 @@ export default function AssessmentPage() {
 
           {!isProcessing ? (
             <>
+              {/* ── Supported Markets ── */}
               <div className="mb-8">
-                <h2 className="text-sm font-medium text-foreground mb-4">
-                  Select your trading platform
+                <h2 className="text-sm font-medium text-foreground mb-1">
+                  Supported Markets &amp; Platforms
                 </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                  {platforms.map((platform) => (
-                    <button
-                      key={platform.id}
-                      onClick={() => setSelectedPlatform(platform.id)}
-                      className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                        selectedPlatform === platform.id
-                          ? "border-primary bg-primary/10 glow-primary"
-                          : "border-border bg-card hover:border-primary/50 hover:bg-card/80"
-                      }`}
-                    >
-                      <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
-                          selectedPlatform === platform.id
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-secondary text-foreground"
-                        }`}
-                      >
-                        {platform.logo}
+                <p className="text-xs text-muted-foreground mb-4">
+                  Export your trade history as CSV from any of the platforms below.
+                </p>
+
+                <div className="rounded-2xl border border-border/60 bg-card/40 p-5 space-y-4">
+                  {marketGroups.map((group) => (
+                    <div key={group.label}>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">
+                        {group.label}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {group.platforms.map((name) => (
+                          <span
+                            key={name}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary/60 border border-border/60 text-foreground/80 hover:border-primary/40 hover:text-foreground transition-colors"
+                          >
+                            {name}
+                          </span>
+                        ))}
                       </div>
-                      <span className="text-xs font-medium text-foreground">
-                        {platform.name}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {platform.format}
-                      </span>
-                      {selectedPlatform === platform.id && (
-                        <div className="absolute top-2 right-2">
-                          <CheckCircle2 className="w-4 h-4 text-primary" />
-                        </div>
-                      )}
-                    </button>
+                    </div>
                   ))}
+
+                  <p className="text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+                    More integrations coming soon.
+                  </p>
                 </div>
               </div>
 
-              <div className="mb-8">
+              {/* ── Upload zone ── */}
+              <div className="mb-6">
                 <h2 className="text-sm font-medium text-foreground mb-4">
-                  Upload trading history
+                  Upload your trading history
                 </h2>
                 <div
                   onDragOver={handleDragOver}
@@ -290,20 +282,17 @@ export default function AssessmentPage() {
                 </div>
               </div>
 
-              <div className="mb-8 p-4 rounded-xl bg-card border border-border flex items-start gap-3">
-                <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-foreground mb-1">
-                    Your data is secure
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    We never ask for your API key or private key. Your trading
-                    history is processed securely and used only for behavioral
-                    analysis.
-                  </p>
-                </div>
+              {/* ── Privacy note ── */}
+              <div className="mb-6 p-4 rounded-xl bg-card border border-border flex items-start gap-3">
+                <Lock className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  <span className="text-foreground font-medium">Privacy first.</span>{" "}
+                  We never ask for your API key, private key, or brokerage login.
+                  Your CSV is processed locally for behavioral analysis only.
+                </p>
               </div>
 
+              {/* ── Error ── */}
               {error && (
                 <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3">
                   <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0" />
@@ -311,16 +300,40 @@ export default function AssessmentPage() {
                 </div>
               )}
 
+              {/* ── CTA ── */}
               <Button
                 onClick={handleStartAssessment}
-                disabled={!selectedPlatform || !file}
-                className="w-full h-14 text-lg glow-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!file}
+                className="w-full h-14 text-lg glow-primary disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Start Free Assessment
+                Analyze My Trading Behavior
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
+
+              {/* ── Export instructions ── */}
+              <div className="mt-10 text-center">
+                <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">
+                  How to export your trading history
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 text-xs text-muted-foreground">
+                  {[
+                    "Binance: Orders › Trade History › Export",
+                    "Bybit: Assets › Order History › Export",
+                    "OKX: Assets › Order Center › Export",
+                    "Hyperliquid: Portfolio › Export CSV",
+                  ].map((tip) => (
+                    <span
+                      key={tip}
+                      className="px-3 py-1.5 rounded-full bg-card border border-border/60"
+                    >
+                      {tip}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </>
           ) : (
+            /* ── Processing state ── */
             <div className="glass rounded-2xl p-8">
               <div className="text-center mb-8">
                 <h2 className="text-xl font-semibold text-foreground mb-2">
@@ -353,23 +366,17 @@ export default function AssessmentPage() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          Step {index + 1}
-                        </span>
-                      </div>
+                      <span className="text-xs text-muted-foreground">Step {index + 1}</span>
                       <p className={`font-medium ${step.status === "pending" ? "text-muted-foreground" : "text-foreground"}`}>
                         {step.title}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {step.description}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{step.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {processingSteps.every((step) => step.status === "complete") && (
+              {processingSteps.every((s) => s.status === "complete") && (
                 <div className="mt-8 text-center">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/20 mb-4">
                     <CheckCircle2 className="w-8 h-8 text-success" />
@@ -391,25 +398,6 @@ export default function AssessmentPage() {
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-          {!isProcessing && (
-            <div className="mt-12 text-center">
-              <p className="text-sm text-muted-foreground mb-4">
-                How to export your trading history
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-                <span className="px-3 py-1.5 rounded-full bg-card border border-border">
-                  Binance: Orders &gt; Trade History &gt; Export
-                </span>
-                <span className="px-3 py-1.5 rounded-full bg-card border border-border">
-                  Bybit: Assets &gt; Spot &gt; Order History
-                </span>
-                <span className="px-3 py-1.5 rounded-full bg-card border border-border">
-                  OKX: Assets &gt; Order Center &gt; Export
-                </span>
-              </div>
             </div>
           )}
         </div>

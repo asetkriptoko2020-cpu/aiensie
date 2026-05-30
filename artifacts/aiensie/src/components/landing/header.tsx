@@ -18,13 +18,14 @@ export function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <img
-              src="/aiensie-logo.png"
-              alt="Aiensie"
-              width={32}
-              height={32}
-              className="h-8 w-8"
-            />
+            <div className="relative h-8 w-8 flex-shrink-0 flex items-center justify-center">
+              <img
+                src="/aiensie-logo.png"
+                alt="Aiensie"
+                className="h-8 w-8 object-contain rounded-sm"
+                style={{ filter: "brightness(1.05)" }}
+              />
+            </div>
             <span className="text-xl font-bold tracking-tight text-foreground">
               Aiensie
             </span>
