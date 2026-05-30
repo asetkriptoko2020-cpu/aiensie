@@ -32,7 +32,7 @@ function getWeakestDimension(scores: AiensieScores): DimensionKey {
   )[0];
 }
 
-// ── P1 — Executive behavioral profile ────────────────────────────────────────
+// ── P1 — Who this trader is ───────────────────────────────────────────────────
 
 function p1Profile(
   score: number,
@@ -43,50 +43,51 @@ function p1Profile(
   const { disciplineScore, emotionalStabilityScore, riskControlScore, consistencyScore, decisionQualityScore } = scores;
   const dominant = getDominantDimension(scores);
 
-  // Opening sentence — tier-calibrated
   const opening =
-    score >= 85 ? `This assessment reflects a behavioral profile consistent with institutional-grade trading discipline. ` :
-    score >= 70 ? `The behavioral data presents a profile of a trader with demonstrable structural competence — a foundation that differentiates deliberate execution from reactive market participation. ` :
-    score >= 55 ? `The assessment reveals a trader in active development: identifiable technical foundations coexisting with behavioral friction points that are compressing the true potential of the underlying strategy. ` :
-    score >= 40 ? `The behavioral record points to a trader operating with reactive tendencies that are materially constraining performance outcomes relative to what the strategy should theoretically deliver. ` :
-    `The data indicates a trading profile where execution psychology is the primary performance constraint — the gap between strategic intent and actual results is being driven by behavioral, not analytical, factors. `;
+    score >= 85
+      ? `This assessment reflects a trader who has developed genuine institutional-grade habits — not just knowledge, but the ability to execute with discipline under real market conditions. `
+      : score >= 70
+      ? `The data presents a picture of a trader who has built a solid foundation — someone who understands what good trading looks like and largely acts on it. `
+      : score >= 55
+      ? `This assessment reveals a trader at a crossroads: you have the potential and the instincts, but some behavioral habits are quietly working against you. `
+      : score >= 40
+      ? `The trading record reflects a pattern that's common but costly — reacting to the market rather than executing a clear plan. The good news is that these patterns are entirely correctable. `
+      : `The data tells a story that many traders recognize: the gap between knowing what to do and actually doing it under pressure. The underlying instincts may be sound, but the execution habits need rebuilding. `;
 
-  // Body — dominant-dimension characterization with embedded metrics
   let body: string;
   if (dominant === "discipline") {
     body = disciplineScore >= 75
-      ? `Position discipline is the standout characteristic: ${metrics.tradesPerActiveDay.toFixed(1)} trades per active day with controlled sizing suggests an operator who respects the market's noise floor and does not feel compelled to manufacture activity. `
-      : `Trade frequency and position sizing present the primary friction point — ${metrics.tradesPerActiveDay.toFixed(1)} trades per active day indicates a tendency toward over-activity that dilutes selectivity and expands behavioral variance. `;
+      ? `Your standout quality is discipline — you trade ${metrics.tradesPerActiveDay.toFixed(1)} times per active day on average, which shows you're selective about when you get involved rather than forcing trades. `
+      : `The area pulling you back most is discipline — at ${metrics.tradesPerActiveDay.toFixed(1)} trades per active day, you may be trading too frequently, chasing moves that aren't really there. `;
   } else if (dominant === "risk") {
     body = riskControlScore >= 75
-      ? `Risk architecture is well-structured — a payoff ratio of ${metrics.payoffRatio.toFixed(2)} combined with a profit factor of ${metrics.profitFactor.toFixed(2)} signals meaningful asymmetry between winning and losing trade magnitudes. `
-      : `Risk asymmetry requires attention — a payoff ratio of ${metrics.payoffRatio.toFixed(2)} indicates that winning trades are not sufficiently outpacing losing ones, which concentrates the P&L burden on win rate alone. `;
+      ? `Your risk management is a genuine strength — your winning trades are ${metrics.payoffRatio.toFixed(2)}× larger than your losers on average, which means you're protecting yourself well when things don't go to plan. `
+      : `Risk management is the area most in need of attention — with winners averaging only ${metrics.payoffRatio.toFixed(2)}× the size of losers, there isn't enough cushion to sustain a healthy overall result. `;
   } else if (dominant === "emotional") {
     body = emotionalStabilityScore >= 70
-      ? `Emotional regulation appears to be a relative strength — behavioral pattern analysis surfaces limited evidence of reactive execution or emotionally-driven sizing decisions across the sample period. `
-      : `Emotional reactivity is the defining characteristic of this profile — the behavioral trace reveals execution decisions that deviate from systematic criteria under pressure, a pattern that tends to widen during drawdown periods. `;
+      ? `What stands out most is your emotional composure — there's little sign of panic trading, revenge entries, or impulsive sizing in this record. You seem to have developed a healthy separation between your emotions and your decisions. `
+      : `The defining theme of this profile is emotional trading — the data shows that how you feel is regularly influencing how you trade, particularly after losses or during rough patches. `;
   } else if (dominant === "consistency") {
     body = consistencyScore >= 70
-      ? `Process consistency is the distinguishing quality — position sizing variance and win-rate distribution are tightly clustered, a hallmark of systematic execution rather than opportunistic improvisation. `
-      : `Inconsistency in process is the primary drag — variance in sizing behavior and erratic win-rate distribution suggest execution has not reached the degree of systematic repeatability that underpins professional-grade performance. `;
+      ? `Process consistency is your strongest quality — you apply the same approach repeatedly rather than improvising, which is what separates professionals from gamblers in the long run. `
+      : `Inconsistency is the primary drag on this profile — results vary too much to indicate a repeatable approach. The trading feels more reactive than systematic at this stage. `;
   } else {
     body = decisionQualityScore >= 70
-      ? `Decision quality metrics are the profile's strongest signal — a positive expectancy of ${metrics.expectancy.toFixed(2)} per trade indicates a genuine probabilistic edge is in operation, not noise. `
-      : `Decision quality metrics reveal the central challenge — with expectancy at ${metrics.expectancy.toFixed(2)}, the current execution structure is not reliably extracting value from market opportunities, suggesting the entry and exit framework needs refinement. `;
+      ? `Your entry and exit decisions are the highlight here — the average return per trade is positive, which means you have a genuine edge, not just luck. `
+      : `The quality of your individual trade decisions is the central challenge — on average, the timing and selection of entries and exits isn't generating enough value to build on. `;
   }
 
-  // Closing — sample characterization
   const closing =
     score >= 75
-      ? `Across ${metrics.totalTrades} trades, the behavioral footprint is that of a trader who has internalized structured execution habits.`
+      ? `Across ${metrics.totalTrades} trades, the behavioral pattern is clear and encouraging.`
       : score >= 55
-      ? `The ${metrics.totalTrades}-trade sample is sufficient to establish a meaningful behavioral baseline — the patterns observed are structural rather than attributable to random variance.`
-      : `Over ${metrics.totalTrades} trades, the behavioral record is consistent enough to identify the root constraints that are limiting performance development, and precise enough to prioritize them.`;
+      ? `With ${metrics.totalTrades} trades to analyse, the picture is clear enough to pinpoint exactly what's working and what isn't.`
+      : `The ${metrics.totalTrades}-trade sample paints a consistent enough picture that the root issues are identifiable — and actionable.`;
 
   return opening + body + closing;
 }
 
-// ── P2 — Psychological dynamics ───────────────────────────────────────────────
+// ── P2 — Psychological habits and patterns ────────────────────────────────────
 
 function p2Patterns(
   score: number,
@@ -98,18 +99,17 @@ function p2Patterns(
 
   const hasRevenge   = patterns.find((p) => p.name === "Revenge Trading Risk");
   const hasOverconf  = patterns.find((p) => p.name === "Overconfidence After Wins");
-  const hasLossHold  = patterns.find((p) => p.name === "Loss Holding Bias");
-  const hasSizeInst  = patterns.find((p) => p.name === "Position Size Instability");
+  const hasLossHold  = patterns.find((p) => p.name === "Holding Losses Too Long");
+  const hasSizeInst  = patterns.find((p) => p.name === "Erratic Position Sizing");
   const hasOvertrade = patterns.find((p) => p.name === "Overtrading");
-  const hasProfitDep = patterns.find((p) => p.name === "Profit Dependency");
+  const hasProfitDep = patterns.find((p) => p.name === "Reliance on a Few Big Wins");
 
   const highPatterns = patterns.filter((p) => p.severity === "high");
 
-  // Clean profile
   if (patterns.length === 0) {
     return emotionalStabilityScore >= 68
-      ? `Psychological analysis of the execution record reveals no significant behavioral anomalies. The absence of revenge trading markers, overconfidence signals, and loss-holding distortion is a genuine differentiator — most retail trading profiles exhibit at least one of these at measurable levels. This suggests a degree of emotional compartmentalization that is typically associated with traders who have either experienced meaningful drawdowns and adapted, or who approach markets with a systematic rule set that buffers against impulsive decision-making. The principal ongoing risk is complacency — sustained clean profiles require periodic re-examination as market conditions, position size, and performance streaks evolve.`
-      : `Behavioral pattern screening returns a relatively clean profile, with no dominant psychological distortions surfacing at statistically significant thresholds. Some low-grade emotional variance is present in the execution record but does not rise to pattern-level severity. The primary psychological risk at this stage is operational drift — without explicit pattern reinforcement, execution discipline can erode gradually in ways that are difficult to detect until they have already embedded.`;
+      ? `Looking at the psychology behind the numbers, this is a clean profile. There's no sign of revenge trading, no pattern of sizing up recklessly after wins, and no tendency to hold losses hoping they'll turn around. These might sound like basic things, but most traders struggle with at least one of them — often without realising it. The fact that none of these show up here suggests you've either learned from difficult experiences in the past, or you're naturally disciplined in how you approach the market. The main thing to guard against going forward is complacency: clean behavioral records can drift if you stop paying attention to the process.`
+      : `The psychological screening returns a relatively clean picture — no major behavioral distortions are showing up at a meaningful level. There's some low-grade emotional influence present in the trading record, but it doesn't rise to the level of a recognizable pattern. The main risk for a profile like this is gradual drift: small bad habits that creep in slowly are the hardest to spot until they've already done damage.`;
   }
 
   const sentences: string[] = [];
@@ -117,62 +117,61 @@ function p2Patterns(
   if (hasRevenge) {
     sentences.push(
       hasRevenge.severity === "high"
-        ? `The most operationally significant finding is a high-severity Revenge Trading pattern — trades entered shortly after losses carry the hallmarks of emotional re-entry: bypassed systematic criteria, compressed decision latency, and elevated sizing. This is among the most value-destructive behavioral patterns in active trading, as it compounds drawdowns precisely at points of maximum emotional fragility.`
+        ? `The most significant finding in this assessment is a strong tendency toward revenge trading — jumping back into the market shortly after a loss, driven by the urge to recover quickly. This is one of the most damaging habits a trader can develop, because it combines emotional decision-making with the moments when judgment is most impaired. A loss stings. The instinct to make it back immediately is completely human. But acting on that instinct almost always makes things worse.`
         : hasRevenge.severity === "medium"
-        ? `A moderate Revenge Trading signal is present — emotional re-entries following losses occur with enough frequency to be structurally behavioral rather than incidental. The evidence suggests that adverse outcomes are influencing subsequent decision architecture, even when the trader may not be consciously aware of it.`
-        : `Low-level Revenge Trading markers are detectable — the frequency is not yet disruptive, but the signal indicates that emotional state influences entry timing following adverse outcomes. Left unaddressed, low-severity patterns at this stage tend to escalate under drawdown pressure.`,
+        ? `There's a moderate pattern of re-entering the market too quickly after a loss — often within minutes. It's not happening every time, but it's frequent enough to be a real habit rather than a coincidence. The psychology here is straightforward: a loss triggers discomfort, and placing another trade feels like doing something about it. But a rushed trade after a loss is rarely the best trade of the day.`
+        : `A mild tendency to re-enter the market quickly after losing trades is detectable in the data. It's not severe, but it's worth being aware of — these patterns tend to intensify during stressful market conditions or drawdown periods if they go unaddressed.`,
     );
   }
 
   if (hasLossHold) {
     sentences.push(
       hasLossHold.severity === "high"
-        ? `Loss Holding Bias is a critical finding — losing positions are held materially longer than winners, a behavioral signature of loss aversion overriding rational exit criteria. This pattern systematically increases the magnitude of losing trades relative to winners, undermining payoff ratio and creating asymmetric downside exposure.`
-        : `A Loss Holding Bias is detectable — the asymmetry between average holding time on winners versus losers suggests difficulty accepting the finality of a loss. The behavioral reflex to hold and hope, while emotionally understandable, inverts the asymmetry that profitable trading requires.`,
+        ? `A clear and costly pattern of holding losses too long is present in this record. Losing trades are being held much longer than winning ones — which is the opposite of what sound trading requires. This comes from a very understandable place: it's psychologically harder to accept a loss than to sit on a losing position and hope. But hope is not a strategy, and this habit is directly inflating the size of losses relative to wins.`
+        : `There's a pattern of holding onto losing trades longer than winning ones. It's not extreme, but it's consistent enough to flag. The emotional mechanics are familiar to most traders: winners feel like they might reverse, but losses feel like they just need a bit more time. Cutting losses early is one of the most important — and most difficult — skills in trading.`,
     );
   }
 
   if (hasOverconf) {
     sentences.push(
-      `Overconfidence following winning streaks manifests in position sizing escalation — a classic variance expansion pattern that concentrates drawdown risk at exactly the moment the trader feels most capable. The behavioral mechanism is well-documented: recent success temporarily overrides the systematic constraints that governed earlier, more disciplined execution.`,
+      `After several wins in a row, position sizes are going up — sometimes significantly. This is overconfidence in a very recognizable form: a winning streak feels like evidence that you've figured something out, and the natural impulse is to press your advantage. The danger is that winning streaks don't change the probabilities of the next trade. Sizing up right before a loss is when overconfidence is most expensive.`,
     );
   }
 
   if (hasOvertrade) {
     sentences.push(
       hasOvertrade.severity === "high"
-        ? `High-frequency execution at ${metrics.tradesPerActiveDay.toFixed(1)} trades per active day is a structural concern — at this volume, statistical edge dilutes as trade selectivity decreases and the proportion of noise-driven entries rises. Quantity of participation is not a substitute for quality of selection.`
-        : `Trade frequency is elevated at ${metrics.tradesPerActiveDay.toFixed(1)} daily — suggesting a psychological pull toward market participation that occasionally overrides quality-based filtering. Overtrading is often driven by boredom, pressure to recover losses, or a misinterpretation of activity as productivity.`,
+        ? `The trading frequency here is noticeably high at ${metrics.tradesPerActiveDay.toFixed(1)} trades per active day. At that volume, it's difficult to maintain the patience and selectivity that good setups require. High activity often masks a deeper issue — discomfort with doing nothing, a need to feel productive, or the compulsion to recover losses quickly. More trades doesn't mean more opportunity; it often means more noise.`
+        : `Trade frequency is running a bit high at ${metrics.tradesPerActiveDay.toFixed(1)} per day. It's not extreme, but it suggests there may be times when trades are placed out of habit or impatience rather than genuine conviction. The best trades tend to come from waiting, not from staying perpetually busy.`,
     );
   }
 
   if (hasSizeInst && sentences.length < 3) {
     sentences.push(
-      `Position size instability reflects an inconsistent risk framework — when sizing deviates from a defined baseline, execution shifts from systematic to discretionary, introducing variance that obscures strategy assessment and makes edge quantification unreliable.`,
+      `Position sizing is inconsistent across the trading record — sometimes small, sometimes large, with no obvious systematic logic. When sizing varies this much, performance becomes heavily influenced by which trades happened to be sized up, rather than by the quality of decision-making overall. A fixed rule for how much to risk per trade solves this immediately.`,
     );
   }
 
   if (hasProfitDep && sentences.length < 3) {
     sentences.push(
-      `Profit concentration in a small subset of trades indicates the edge may be scenario-dependent rather than broadly systematic — a structural fragility that becomes particularly consequential if those high-value market conditions become less frequent.`,
+      `A large portion of total profits comes from just a few exceptional trades. This is worth examining carefully — it means that if those specific trades were removed, the overall picture would look very different. It raises the question of whether those big winners are reliably reproducible, or whether they were unusual events that happened to go the right way.`,
     );
   }
 
-  // Multi-pattern synthesis
   if (highPatterns.length >= 2) {
     sentences.push(
-      `The co-occurrence of multiple high-severity patterns is not behaviorally independent — these traits reinforce one another, creating a feedback loop between emotional reactivity and execution quality that will require deliberate, structured intervention to resolve.`,
+      `These patterns don't exist in isolation — they feed each other. Revenge trading leads to oversized positions; oversized losses create emotional pressure; emotional pressure leads to more revenge trading. Breaking one of these cycles tends to weaken the others, which is why targeted behavioral work delivers outsized results.`,
     );
   } else if (patterns.length >= 3 && sentences.length < 4) {
     sentences.push(
-      `The pattern cluster, while individually manageable, collectively suggests that psychological factors account for a meaningful proportion of current performance variance.`,
+      `Taken individually, each of these patterns is manageable. Taken together, they suggest that emotional factors are playing a meaningful role in driving performance variance.`,
     );
   }
 
   return sentences.slice(0, 4).join(" ");
 }
 
-// ── P3 — Edge and risk architecture ──────────────────────────────────────────
+// ── P3 — The numbers behind the results ──────────────────────────────────────
 
 function p3Edge(
   score: number,
@@ -183,57 +182,54 @@ function p3Edge(
   const winRatePct = (metrics.winRate * 100).toFixed(1);
   const sentences: string[] = [];
 
-  // Win rate framing
   sentences.push(
     metrics.winRate >= 0.60
-      ? `A win rate of ${winRatePct}% places this profile in the upper tier for hit frequency — the strategy is directionally correct the majority of the time, though the durability of that rate under extended sampling and regime shifts remains the critical open question.`
+      ? `You win ${winRatePct}% of your trades — more often than most traders. That's a meaningful advantage, though the important question is whether that hit rate can hold up over a longer period and across different market conditions.`
       : metrics.winRate >= 0.50
-      ? `Win rate at ${winRatePct}% reflects a balanced execution structure — the edge here is not derived primarily from hit frequency, but from how winning and losing trade magnitudes relate to one another.`
+      ? `A win rate of ${winRatePct}% sits just above the 50% mark — which means the edge here isn't about winning more often, it's about making sure winners are bigger than losers when they do occur.`
       : metrics.winRate >= 0.40
-      ? `At ${winRatePct}%, win rate operates below the 50% threshold — a structurally viable but demanding configuration that places the entire weight of profitability on payoff ratio discipline. The margin for execution error is narrow.`
-      : `A win rate of ${winRatePct}% demands a high payoff ratio to generate positive expectancy — this is a viable edge profile in trend-following contexts, but requires rigorous loss management and strong winner extension to sustain.`,
+      ? `With ${winRatePct}% of trades ending in profit, most trades currently end at a loss. That's workable — some of the best trading approaches win less than half the time — but it means the size of each win becomes critically important.`
+      : `A win rate of ${winRatePct}% is challenging to make profitable. It's possible, but it requires winning trades to be significantly larger than losing ones. Without that asymmetry, the math doesn't work in your favour.`,
   );
 
-  // Payoff ratio framing
   sentences.push(
     metrics.payoffRatio >= 2.0
-      ? `The payoff ratio of ${metrics.payoffRatio.toFixed(2)} is a structural strength — winners outpacing losers at this magnitude provides substantial cushion for win-rate deterioration during normal drawdown periods, a meaningful risk buffer.`
+      ? `When you do win, your winning trades are on average ${metrics.payoffRatio.toFixed(2)}× larger than your losing ones — that's a strong risk-reward relationship. It gives you a lot of room to absorb losing streaks without serious damage.`
       : metrics.payoffRatio >= 1.5
-      ? `A payoff ratio of ${metrics.payoffRatio.toFixed(2)} represents workable risk asymmetry, though the ceiling on this metric indicates room to either extend winners more aggressively or tighten stop-loss execution on losers.`
+      ? `Your average winning trade is ${metrics.payoffRatio.toFixed(2)}× larger than your average loser — a healthy relationship, though there's still room to let winners run a bit further or cut losers a bit sooner.`
       : metrics.payoffRatio >= 1.0
-      ? `The payoff ratio of ${metrics.payoffRatio.toFixed(2)} is operationally marginal — the gap between winner and loser magnitudes is insufficient to absorb meaningful win-rate variance without impacting overall expectancy.`
-      : `A payoff ratio of ${metrics.payoffRatio.toFixed(2)} represents an inverted asymmetry — losing trades are outpacing winners in magnitude, which is the single most corrosive structural characteristic in a trading profile and takes precedence over all other optimization priorities.`,
+      ? `Wins and losses are running close to the same size on average (${metrics.payoffRatio.toFixed(2)}× ratio). That makes profitability almost entirely dependent on win rate, which is a fragile position to be in.`
+      : `On average, your losing trades are larger than your winning ones (${metrics.payoffRatio.toFixed(2)}× ratio). This is the single most important number to improve — until wins are bigger than losses, consistent profitability is very difficult to achieve.`,
   );
 
-  // Profit factor or consistency
   if (metrics.profitFactor >= 1.8) {
     sentences.push(
-      `Profit factor of ${metrics.profitFactor.toFixed(2)} is the strongest quantitative signal in this review — at this level, the strategy is generating material gross profit surplus relative to gross losses, which is the foundational requirement of a sustainable edge.`,
+      `The overall picture is positive — for every dollar lost, you're making back ${metrics.profitFactor.toFixed(2)} dollars. That's a real edge, and it shows the strategy has genuine merit beyond lucky trades.`,
     );
   } else if (metrics.profitFactor >= 1.2) {
     sentences.push(
-      `Profit factor of ${metrics.profitFactor.toFixed(2)} confirms the presence of a functional edge — the margin above breakeven is real, though the proximity to 1.0 warrants continued tracking as market regimes evolve.`,
+      `Overall, profits are outpacing losses (${metrics.profitFactor.toFixed(2)}× ratio) — which confirms a working edge, even if the margin is modest. The goal is to widen that margin through better execution.`,
     );
   } else {
     sentences.push(
-      `A profit factor of ${metrics.profitFactor.toFixed(2)} indicates the strategy is operating near or at breakeven on a gross basis — transaction costs and execution slippage may be converting this into a structurally unprofitable operation.`,
+      `At a profit efficiency of ${metrics.profitFactor.toFixed(2)}, overall losses are close to — or ahead of — overall profits. After accounting for transaction costs, this may be a net-negative operation at the moment.`,
     );
   }
 
   if (consistencyScore >= 70) {
     sentences.push(
-      `Process consistency scores suggest a repeatable execution approach — the ability to apply an edge uniformly across varied market conditions is a distinguishing characteristic of professional-grade operations.`,
+      `The consistency in how you execute is also notable — you're not just getting lucky on a few big trades. The results reflect a repeatable approach, which is the foundation everything else is built on.`,
     );
   } else if (consistencyScore < 50) {
     sentences.push(
-      `Low consistency scores indicate that whatever edge exists is not being applied systematically — performance is likely more sensitive to market conditions and emotional state than to strategic criteria, which limits its scalability.`,
+      `The inconsistency in approach means results are sensitive to factors outside your control — market conditions, emotional state, recent performance. Building a more repeatable process would make performance much more predictable.`,
     );
   }
 
   return sentences.slice(0, 3).join(" ");
 }
 
-// ── P4 — Development focus (conditional) ─────────────────────────────────────
+// ── P4 — What to work on next ─────────────────────────────────────────────────
 
 function p4Development(
   score: number,
@@ -251,44 +247,42 @@ function p4Development(
   const weakest = getWeakestDimension(scores);
   const sentences: string[] = [];
 
-  // Primary development priority
   if (highPatterns.length >= 2) {
     sentences.push(
-      `The priority intervention for this profile is behavioral, not strategic — the data indicates that execution psychology is the primary performance constraint, and technical refinements to the underlying strategy will deliver limited improvement until the behavioral layer is addressed.`,
+      `The most important thing to understand about this profile is that the primary obstacle isn't the strategy — it's the behavior around it. Improving entries, finding better setups, or changing markets won't move the needle nearly as much as addressing the emotional patterns that are disrupting execution. That's where the real work is.`,
     );
   } else if (highPatterns.length === 1) {
     sentences.push(
-      `Development focus should concentrate on the ${primaryPattern.name} pattern — at high severity, this is the single behavioral variable with the greatest measurable impact on forward performance, and targeted intervention here will have a disproportionate effect on outcomes.`,
+      `The single highest-impact change available to this trader is addressing the ${primaryPattern.name} pattern. At the severity level detected here, this one habit is likely responsible for a disproportionate share of losses and missed profits. Fixing everything else while this remains unaddressed would be like bailing out a leaking boat.`,
     );
   } else if (weakest === "discipline") {
     sentences.push(
-      `The highest-leverage development opportunity for this profile is execution discipline — standardizing frequency and position sizing through explicit pre-trade rules is the structural intervention most likely to compress performance variance.`,
+      `The highest-leverage improvement available is getting more deliberate about when and how much to trade. Reducing frequency and standardizing position sizing would immediately reduce the variability in results — and make it much easier to assess whether the strategy itself is actually working.`,
     );
   } else if (weakest === "risk") {
     sentences.push(
-      `Risk architecture is the primary development focus — improving payoff ratio and reducing concentration risk would have a compounding positive effect across all other performance dimensions and should be treated as the foundational priority.`,
+      `Improving the size relationship between winning and losing trades is the most important technical focus for this profile. Everything else — win rate, consistency, emotional discipline — becomes much more manageable once the risk-reward structure is sound.`,
     );
   } else if (weakest === "consistency") {
     sentences.push(
-      `Process standardization is the development priority — introducing systematic pre-trade criteria and fixed position-sizing rules would reduce behavioral variance and improve the repeatability of results, which is the precondition for reliable performance assessment.`,
+      `Building more consistency into the process is the priority here. That means defining clear criteria for entering and exiting trades, and sticking to them regardless of how you feel about the market on a given day. Process consistency is what turns a profitable strategy into reliable results.`,
     );
   } else if (weakest === "emotional") {
     sentences.push(
-      `Emotional regulation is the highest-leverage development area — the behavioral data suggests that market stress is currently amplifying decision noise in ways that are both measurable and structurally addressable through protocol-based trading routines.`,
+      `The biggest opportunity for this trader is in emotional management. The data shows that stress, losses, and winning streaks are influencing decisions in measurable ways. Simple protocols — cooling-off periods after losses, pre-set rules for sizing — can dramatically reduce the emotional variance in decision-making.`,
     );
   } else {
     sentences.push(
-      `The development path for this profile involves sharpening decision criteria — improving trade selectivity and entry discipline would materially improve the expectancy profile without requiring changes to the core strategic framework.`,
+      `Refining the quality of individual trade decisions is the main development focus — being more selective about entries and more precise about exits would have a direct and meaningful impact on overall results.`,
     );
   }
 
-  // Forward trajectory framing
   sentences.push(
     score >= 65
-      ? `At this performance level, marginal improvements in behavioral consistency tend to produce disproportionate returns — the structural foundations for a strong profile are in place, and the remaining work is refinement rather than reconstruction.`
+      ? `The foundations here are solid. The gap between this profile and a consistently strong one is real but manageable — it's about refinement, not reinvention.`
       : score >= 50
-      ? `The distance between this profile and a structurally sound trading operation is bridgeable with targeted behavioral work — the diagnostic is clear, and the interventions are specific rather than requiring wholesale strategic revision.`
-      : `Foundational behavioral protocols — fixed risk per trade, systematic entry criteria, and post-loss engagement rules — represent the highest-return investment at this stage, as they address root causes rather than surface symptoms.`,
+      ? `There's a clear path forward from here. The issues are specific, not systemic, which means targeted changes in a few areas could produce significant improvement relatively quickly.`
+      : `Building durable trading habits — consistent sizing, clear entry rules, post-loss protocols — is the work of this stage. Get those right, and everything else becomes easier.`,
   );
 
   return sentences.join(" ");

@@ -32,7 +32,7 @@ interface ScoreReportProps {
 // ── Score ring ────────────────────────────────────────────────────────────────
 
 function ScoreRing({ score }: { score: number }) {
-  const [progress, setProgress]       = useState(0);
+  const [progress, setProgress]         = useState(0);
   const [displayScore, setDisplayScore] = useState(0);
 
   useEffect(() => {
@@ -49,9 +49,9 @@ function ScoreRing({ score }: { score: number }) {
     return () => { clearTimeout(tProgress); clearInterval(tCount); };
   }, [score]);
 
-  const R            = 52;
+  const R             = 52;
   const circumference = 2 * Math.PI * R;
-  const dashOffset   = circumference - (progress / 100) * circumference;
+  const dashOffset    = circumference - (progress / 100) * circumference;
   const color =
     score >= 80 ? "#10b981" :
     score >= 65 ? "#06b6d4" :
@@ -66,8 +66,7 @@ function ScoreRing({ score }: { score: number }) {
     <div className="relative w-40 h-40 flex-shrink-0">
       <svg width="160" height="160" viewBox="0 0 160 160"
         style={{ transform: "rotate(-90deg)" }}>
-        <circle cx="80" cy="80" r={R} fill="none"
-          stroke="rgba(255,255,255,0.07)" strokeWidth="10" />
+        <circle cx="80" cy="80" r={R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10" />
         <circle cx="80" cy="80" r={R} fill="none"
           stroke={color} strokeWidth="10" strokeLinecap="round"
           strokeDasharray={circumference} strokeDashoffset={dashOffset}
@@ -92,11 +91,11 @@ const DIMENSION_META: Array<{
   Icon: IconComponent;
   color: string;
 }> = [
-  { key: "disciplineScore",         label: "Discipline",          sublabel: "Position sizing & trade frequency",  Icon: Target,     color: "#06b6d4" },
-  { key: "riskControlScore",        label: "Risk Control",        sublabel: "Payoff ratio & portfolio exposure",  Icon: Shield,     color: "#10b981" },
-  { key: "consistencyScore",        label: "Consistency",         sublabel: "Win-rate stability & size variance", Icon: Activity,   color: "#f59e0b" },
-  { key: "emotionalStabilityScore", label: "Emotional Stability", sublabel: "Behavioral & psychological control", Icon: Brain,      color: "#a78bfa" },
-  { key: "decisionQualityScore",    label: "Decision Quality",    sublabel: "Expectancy & edge reliability",      Icon: TrendingUp, color: "#38bdf8" },
+  { key: "disciplineScore",         label: "Discipline",       sublabel: "How well you control how often and how much you trade",  Icon: Target,     color: "#06b6d4" },
+  { key: "riskControlScore",        label: "Risk Control",     sublabel: "How well your winning trades outpace your losing ones",  Icon: Shield,     color: "#10b981" },
+  { key: "consistencyScore",        label: "Trading Stability",sublabel: "How consistently you apply the same approach each time", Icon: Activity,   color: "#f59e0b" },
+  { key: "emotionalStabilityScore", label: "Emotional Control",sublabel: "How well you stay calm under pressure and after losses",  Icon: Brain,      color: "#a78bfa" },
+  { key: "decisionQualityScore",    label: "Trade Quality",    sublabel: "How good your entries and exits are on average",         Icon: TrendingUp, color: "#38bdf8" },
 ];
 
 function DimensionBar({
@@ -122,8 +121,8 @@ function DimensionBar({
     return () => clearTimeout(t);
   }, [score, delay]);
 
-  const delta     = score - aiensieScore;
-  const deltaStr  = delta > 0 ? `+${delta}` : String(delta);
+  const delta      = score - aiensieScore;
+  const deltaStr   = delta > 0 ? `+${delta}` : String(delta);
   const deltaColor = delta >= 0 ? "text-emerald-400" : "text-red-400";
 
   return (
@@ -146,20 +145,15 @@ function DimensionBar({
           </div>
         </div>
         <div className="relative h-1.5 rounded-full bg-white/5 overflow-hidden">
-          {/* Reference line at Aiensie Score */}
-          <div
-            className="absolute top-0 bottom-0 w-px bg-white/20 z-10"
-            style={{ left: `${aiensieScore}%` }}
-          />
-          <div
-            className="h-full rounded-full"
+          <div className="absolute top-0 bottom-0 w-px bg-white/20 z-10"
+               style={{ left: `${aiensieScore}%` }} />
+          <div className="h-full rounded-full"
             style={{
               width: `${width}%`,
               background: color,
               boxShadow: `0 0 6px ${color}60`,
               transition: `width 1s ease ${delay}ms`,
-            }}
-          />
+            }} />
         </div>
       </div>
     </div>
@@ -184,11 +178,12 @@ function SectionHeader({ label, icon: Icon }: { label: string; icon: IconCompone
 // ── Pattern card ──────────────────────────────────────────────────────────────
 
 const SEVERITY_CONFIG: Record<string, {
-  bg: string; border: string; text: string; badge: string; dot: string; icon: string;
+  bg: string; border: string; text: string; badge: string; dot: string;
+  badgeLabel: string;
 }> = {
-  low:    { bg: "bg-emerald-950/50",  border: "border-emerald-800/40", text: "text-emerald-400",  badge: "bg-emerald-900/60 border-emerald-700/60",  dot: "bg-emerald-400",  icon: "✓" },
-  medium: { bg: "bg-amber-950/50",    border: "border-amber-800/40",   text: "text-amber-400",    badge: "bg-amber-900/60 border-amber-700/60",     dot: "bg-amber-400",    icon: "△" },
-  high:   { bg: "bg-red-950/50",      border: "border-red-800/40",     text: "text-red-400",      badge: "bg-red-900/60 border-red-700/60",          dot: "bg-red-400",      icon: "!" },
+  low:    { bg: "bg-emerald-950/50", border: "border-emerald-800/40", text: "text-emerald-400", badge: "bg-emerald-900/60 border-emerald-700/60", dot: "bg-emerald-400", badgeLabel: "Minor"   },
+  medium: { bg: "bg-amber-950/50",   border: "border-amber-800/40",   text: "text-amber-400",   badge: "bg-amber-900/60 border-amber-700/60",   dot: "bg-amber-400",   badgeLabel: "Moderate" },
+  high:   { bg: "bg-red-950/50",     border: "border-red-800/40",     text: "text-red-400",     badge: "bg-red-900/60 border-red-700/60",       dot: "bg-red-400",     badgeLabel: "Strong"   },
 };
 
 function PatternCard({ pattern }: { pattern: DetectedPattern }) {
@@ -201,11 +196,11 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
           <span className={`text-sm font-semibold ${s.text}`}>{pattern.name}</span>
         </div>
         <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border flex-shrink-0 ${s.badge} ${s.text}`}>
-          {pattern.severity}
+          {s.badgeLabel}
         </span>
       </div>
-      <p className="text-xs text-foreground/70 mb-1.5 ml-4.5 pl-[18px]">{pattern.description}</p>
-      <p className={`text-[11px] ml-4.5 pl-[18px] font-medium ${s.text} opacity-80`}>{pattern.evidence}</p>
+      <p className="text-xs text-foreground/70 mb-1.5 pl-[18px]">{pattern.description}</p>
+      <p className={`text-[11px] pl-[18px] font-medium ${s.text} opacity-80`}>{pattern.evidence}</p>
     </div>
   );
 }
@@ -247,7 +242,6 @@ function BehavioralIntelligenceSummary({ report }: { report: AiensieReport }) {
         ))}
       </div>
 
-      {/* Subtle footer rule */}
       <div
         className="mt-5 pt-4 border-t border-border/30 flex items-center gap-2"
         style={{
@@ -266,13 +260,46 @@ function BehavioralIntelligenceSummary({ report }: { report: AiensieReport }) {
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, interpretation }: {
+  label: string; value: string; interpretation: string;
+}) {
   return (
-    <div className="bg-card/60 rounded-xl border border-border/40 p-3 text-center">
+    <div className="bg-card/60 rounded-xl border border-border/40 p-3 text-center flex flex-col gap-0.5">
       <p className="text-xl font-semibold text-foreground tabular-nums">{value}</p>
-      <p className="text-[11px] text-muted-foreground mt-0.5">{label}</p>
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="text-[10px] text-muted-foreground/50 leading-snug mt-0.5">{interpretation}</p>
     </div>
   );
+}
+
+// ── Helpers: human-readable metric interpretations ────────────────────────────
+
+function winRateInterpretation(rate: number): string {
+  if (rate >= 0.60) return "You win more often than most traders";
+  if (rate >= 0.50) return "More than half your trades are profitable";
+  if (rate >= 0.40) return "Under half your trades win — sizing matters here";
+  return "Most trades end at a loss — this needs attention";
+}
+
+function payoffInterpretation(ratio: number): string {
+  if (ratio >= 2.0) return "Your winners are 2× bigger than your losers";
+  if (ratio >= 1.5) return "Your wins meaningfully outpace your losses";
+  if (ratio >= 1.0) return "Wins and losses are close in size";
+  return "Your losses are currently larger than your wins";
+}
+
+function profitEfficiencyInterpretation(pf: number): string {
+  if (pf >= 2.0) return "For every $1 lost, you make over $2";
+  if (pf >= 1.5) return "Your profits significantly outpace your losses";
+  if (pf >= 1.0) return "You're close to breaking even overall";
+  return "Your losses currently outweigh your profits";
+}
+
+function streakInterpretation(n: number): string {
+  if (n <= 2) return "Very short — great resilience";
+  if (n <= 4) return "Normal for most traders";
+  if (n <= 7) return "Extended — can create emotional pressure";
+  return "Long streaks are psychologically challenging";
 }
 
 // ── Strength / Weakness item ──────────────────────────────────────────────────
@@ -324,10 +351,10 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  const winRatePct    = `${(metrics.winRate * 100).toFixed(1)}%`;
-  const payoffRatio   = metrics.payoffRatio.toFixed(2);
-  const profitFactor  = metrics.profitFactor.toFixed(2);
-  const maxConsecLoss = String(metrics.maxConsecutiveLosses);
+  const winRatePct   = `${(metrics.winRate * 100).toFixed(1)}%`;
+  const payoffRatio  = metrics.payoffRatio.toFixed(2);
+  const profitFactor = metrics.profitFactor.toFixed(2);
+  const maxStreak    = String(metrics.maxConsecutiveLosses);
 
   const highSeverityCount   = detectedPatterns.filter((p) => p.severity === "high").length;
   const mediumSeverityCount = detectedPatterns.filter((p) => p.severity === "medium").length;
@@ -357,17 +384,33 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         </div>
 
         {/* Key stats */}
-        <div className="grid grid-cols-4 gap-2 sm:gap-3 mt-6 pt-6 border-t border-border/40">
-          <StatCard label="Win Rate"      value={winRatePct}   />
-          <StatCard label="Payoff Ratio"  value={payoffRatio}  />
-          <StatCard label="Profit Factor" value={profitFactor} />
-          <StatCard label="Max Drawdown"  value={maxConsecLoss + " L"} />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-6 pt-6 border-t border-border/40">
+          <StatCard
+            label="Win Rate"
+            value={winRatePct}
+            interpretation={winRateInterpretation(metrics.winRate)}
+          />
+          <StatCard
+            label="Avg Win vs Loss"
+            value={`${payoffRatio}×`}
+            interpretation={payoffInterpretation(metrics.payoffRatio)}
+          />
+          <StatCard
+            label="Profit Efficiency"
+            value={profitFactor}
+            interpretation={profitEfficiencyInterpretation(metrics.profitFactor)}
+          />
+          <StatCard
+            label="Worst Losing Streak"
+            value={`${maxStreak} trades`}
+            interpretation={streakInterpretation(metrics.maxConsecutiveLosses)}
+          />
         </div>
       </div>
 
       {/* ── 2. Performance Dimensions ── */}
       <div className="glass rounded-2xl p-6">
-        <SectionHeader label="Performance Dimensions" icon={BarChart3} />
+        <SectionHeader label="Your Trading Scores" icon={BarChart3} />
         <div className="space-y-4">
           {DIMENSION_META.map(({ key, label: dimLabel, sublabel, Icon, color }, i) => (
             <DimensionBar
@@ -383,8 +426,8 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
           ))}
         </div>
         <p className="text-[11px] text-muted-foreground/50 mt-4 pt-4 border-t border-border/30">
-          The vertical line marks your overall Aiensie Score ({aiensieScore}) for reference.
-          Scores above the line are strengths; below are growth areas.
+          The vertical line marks your overall Aiensie Score ({aiensieScore}).
+          Scores to the right are strengths; scores to the left are areas to work on.
         </p>
       </div>
 
@@ -401,7 +444,7 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
             <div>
               <p className="text-sm font-medium text-emerald-400">No significant patterns detected.</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Your trading shows clean psychological footprints. Maintain current discipline.
+                Your trading shows clean psychological footprints — keep doing what you're doing.
               </p>
             </div>
           </div>
@@ -412,19 +455,19 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
                 {highSeverityCount > 0 && (
                   <span className="flex items-center gap-1.5 text-xs text-red-400">
                     <span className="w-2 h-2 rounded-full bg-red-400" />
-                    {highSeverityCount} high-severity
+                    {highSeverityCount} strong {highSeverityCount === 1 ? "pattern" : "patterns"}
                   </span>
                 )}
                 {mediumSeverityCount > 0 && (
                   <span className="flex items-center gap-1.5 text-xs text-amber-400">
                     <span className="w-2 h-2 rounded-full bg-amber-400" />
-                    {mediumSeverityCount} medium-severity
+                    {mediumSeverityCount} moderate {mediumSeverityCount === 1 ? "pattern" : "patterns"}
                   </span>
                 )}
                 {detectedPatterns.filter((p) => p.severity === "low").length > 0 && (
                   <span className="flex items-center gap-1.5 text-xs text-emerald-400">
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    {detectedPatterns.filter((p) => p.severity === "low").length} low-severity
+                    {detectedPatterns.filter((p) => p.severity === "low").length} minor {detectedPatterns.filter((p) => p.severity === "low").length === 1 ? "signal" : "signals"}
                   </span>
                 )}
               </div>
@@ -438,9 +481,9 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         )}
       </div>
 
-      {/* ── 4. Key Strengths ── */}
+      {/* ── 5. Key Strengths ── */}
       <div className="glass rounded-2xl p-6">
-        <SectionHeader label="Key Strengths" icon={CheckCircle2} />
+        <SectionHeader label="What You're Doing Well" icon={CheckCircle2} />
         <ul className="space-y-2.5">
           {strengths.map((s) => (
             <StrengthItem key={s} text={s} />
@@ -448,13 +491,15 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         </ul>
       </div>
 
-      {/* ── 5. Risk Weaknesses ── */}
+      {/* ── 6. Risk Weaknesses ── */}
       <div className="glass rounded-2xl p-6">
-        <SectionHeader label="Risk Weaknesses" icon={XCircle} />
+        <SectionHeader label="Where You're Losing Ground" icon={XCircle} />
         {weaknesses.length === 0 ? (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-950/30 border border-emerald-800/30">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-            <p className="text-sm text-emerald-400">No critical weaknesses identified. Focus on sustaining current performance.</p>
+            <p className="text-sm text-emerald-400">
+              No critical issues found. Focus on staying consistent.
+            </p>
           </div>
         ) : (
           <ul className="space-y-2.5">
@@ -465,11 +510,11 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         )}
       </div>
 
-      {/* ── 6. Personalised Action Plan ── */}
+      {/* ── 7. Personalised Action Plan ── */}
       <div className="glass rounded-2xl p-6">
-        <SectionHeader label="Personalised Action Plan" icon={Zap} />
+        <SectionHeader label="Your Action Plan" icon={Zap} />
         <p className="text-xs text-muted-foreground mb-4 -mt-1">
-          Prioritised steps based on your specific behavioral data. Start with step 1.
+          Specific steps based on your trading data — not generic advice. Start with step 1.
         </p>
         <ol className="space-y-2.5">
           {actionPlan.map((item, i) => (
@@ -478,7 +523,7 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         </ol>
       </div>
 
-      {/* ── 7. Disclaimer ── */}
+      {/* ── 8. Disclaimer ── */}
       <div className="flex items-start gap-3 p-4 rounded-xl bg-card/40 border border-border/40">
         <Info className="w-4 h-4 text-muted-foreground/60 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground/70 leading-relaxed">
