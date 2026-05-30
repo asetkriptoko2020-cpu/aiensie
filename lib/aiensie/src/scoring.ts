@@ -88,7 +88,9 @@ function consistencyScore(m: TradeMetrics, patterns: DetectedPattern[]): number 
 }
 
 function emotionalStabilityScore(m: TradeMetrics, patterns: DetectedPattern[]): number {
-  const base = 100;
+  // Baseline of 76 represents a disciplined but human trader with no detected patterns.
+  // This aligns the expected range of emotionalStability with other linear-mapped dimensions.
+  const base = 76;
 
   const penalty =
     patternPenalty(patterns, "Revenge Trading Risk")      * 1.5 +
@@ -96,7 +98,7 @@ function emotionalStabilityScore(m: TradeMetrics, patterns: DetectedPattern[]): 
     patternPenalty(patterns, "Loss Holding Bias")         * 0.8;
 
   // Consecutive losses as additional pressure signal
-  const streakDeduction = clamp((m.maxConsecutiveLosses - 2) * 4, 0, 25);
+  const streakDeduction = clamp((m.maxConsecutiveLosses - 2) * 3, 0, 22);
 
   return clamp(base - penalty - streakDeduction);
 }
