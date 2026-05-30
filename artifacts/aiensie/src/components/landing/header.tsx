@@ -45,8 +45,8 @@ export function Header() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                Dashboard
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                Dashboard Demo
               </Button>
             </Link>
             <Link href="/login">
@@ -90,8 +90,8 @@ export function Header() {
             ))}
             <div className="pt-4 flex flex-col gap-2">
               <Link href="/dashboard">
-                <Button variant="ghost" className="w-full justify-center">
-                  Dashboard
+                <Button variant="ghost" className="w-full justify-center text-muted-foreground">
+                  Dashboard Demo
                 </Button>
               </Link>
               <Link href="/login">
