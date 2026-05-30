@@ -5,7 +5,8 @@ import {
 } from "recharts";
 import {
   TrendingUp, FileText, Upload, ArrowUpRight, ArrowRight,
-  AlertTriangle, CheckCircle2, Lock, Zap,
+  AlertTriangle, CheckCircle2, Lock, Zap, Brain, Dna,
+  ChevronRight,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import {
@@ -160,6 +161,106 @@ export default function DashboardOverview() {
               />
             </LineChart>
           </ResponsiveContainer>
+        </div>
+
+        {/* ── Weekly AI Coaching ── */}
+        <div className="rounded-2xl p-6 border border-cyan-500/20 relative overflow-hidden"
+             style={{ background: "linear-gradient(135deg, oklch(0.12 0.015 220 / 0.95), oklch(0.1 0.01 250 / 0.95))", boxShadow: "0 0 40px oklch(0.7 0.15 200 / 0.06) inset" }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 40% at 90% 10%, oklch(0.7 0.18 200 / 0.07), transparent)" }} />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center border border-cyan-500/25" style={{ background: "oklch(0.7 0.15 200 / 0.12)" }}>
+                <Brain className="w-4 h-4 text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-cyan-500/70 uppercase tracking-widest">Weekly AI Coaching</p>
+                <p className="text-sm font-semibold text-foreground">Personalized behavioral analysis</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Strengths */}
+              <div className="rounded-xl p-4 border border-emerald-500/15" style={{ background: "oklch(0.15 0.015 160 / 0.4)" }}>
+                <p className="text-[10px] font-bold text-emerald-400/60 uppercase tracking-widest mb-3">Strengths</p>
+                <ul className="space-y-2.5">
+                  {[
+                    "Trade patience has improved — you're waiting for cleaner setups.",
+                    "Risk consistency is stabilising across different market conditions.",
+                  ].map((s, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-foreground/80 leading-relaxed">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Weaknesses */}
+              <div className="rounded-xl p-4 border border-amber-500/15" style={{ background: "oklch(0.15 0.015 60 / 0.4)" }}>
+                <p className="text-[10px] font-bold text-amber-400/60 uppercase tracking-widest mb-3">Areas to Watch</p>
+                <ul className="space-y-2.5">
+                  {[
+                    "Emotional re-entries still appear after losing trades.",
+                    "Position sizing tends to expand during volatile sessions.",
+                  ].map((s, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-foreground/80 leading-relaxed">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Focus */}
+              <div className="rounded-xl p-4 border border-cyan-500/15" style={{ background: "oklch(0.15 0.015 210 / 0.4)" }}>
+                <p className="text-[10px] font-bold text-cyan-400/60 uppercase tracking-widest mb-3">Focus This Week</p>
+                <div className="flex items-start gap-2">
+                  <ChevronRight className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-foreground/80 leading-relaxed">
+                    After any losing trade, wait at least 15 minutes before re-entering. Let the emotion clear before the next decision.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Behavioral DNA ── */}
+        <div className="rounded-2xl p-6 border border-violet-500/20 relative overflow-hidden"
+             style={{ background: "linear-gradient(135deg, oklch(0.12 0.015 280 / 0.95), oklch(0.1 0.01 260 / 0.95))", boxShadow: "0 0 40px oklch(0.65 0.2 280 / 0.05) inset" }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 50% at 10% 90%, oklch(0.65 0.2 280 / 0.06), transparent)" }} />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center border border-violet-500/25" style={{ background: "oklch(0.65 0.2 280 / 0.12)" }}>
+                <Dna className="w-4 h-4 text-violet-400" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-violet-400/70 uppercase tracking-widest">Behavioral DNA</p>
+                <p className="text-sm font-semibold text-foreground">Your psychological execution profile</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { signal: "You perform best in low-frequency, high-conviction environments. Overtrading consistently degrades your edge.", strength: 92 },
+                { signal: "Execution quality declines during impulsive sessions — your fastest decisions are rarely your best.", strength: 78 },
+                { signal: "Your strongest edge emerges during structured, trend-following conditions with clear entry criteria.", strength: 85 },
+                { signal: "Emotional decision-making intensifies in high-frequency sessions. Fewer trades tend to produce better outcomes.", strength: 71 },
+              ].map(({ signal, strength }, i) => (
+                <div key={i} className="rounded-xl p-4 border border-white/6 hover:border-violet-500/20 transition-colors"
+                     style={{ background: "oklch(0.13 0.01 270 / 0.6)" }}>
+                  <p className="text-xs text-foreground/85 leading-relaxed mb-3">{signal}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1 rounded-full bg-white/8">
+                      <div className="h-full rounded-full transition-all duration-700"
+                           style={{ width: `${strength}%`, background: "linear-gradient(90deg, oklch(0.65 0.2 280), oklch(0.7 0.15 200))" }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-violet-400/70 tabular-nums">{strength}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* ── Bottom row ── */}

@@ -1,0 +1,95 @@
+Add a new premium intelligence section to the Aiensie Pro Dashboard called:
+
+1. Weekly AI Coaching
+2. Behavioral DNA
+
+Do NOT redesign the existing dashboard.
+Add these sections below the current dashboard overview/trend area.
+
+GOAL:
+Make Aiensie feel like an intelligent behavioral operating system, not just an analytics dashboard.
+
+--------------------------------------------------
+SECTION 1 — WEEKLY AI COACHING
+--------------------------------------------------
+
+Create a premium coaching card with:
+- dark glassmorphism style
+- subtle cyan/blue glow
+- institutional fintech feel
+
+Inside the card:
+Show:
+- 2 behavioral strengths
+- 2 behavioral weaknesses
+- 1 focus recommendation
+
+Example structure:
+
+Weekly AI Coaching
+
+Strengths:
+✓ Trade patience improved this week
+✓ Risk consistency is becoming more stable
+
+Weaknesses:
+• Emotional re-entries still occur after losses
+• Position sizing expands during high volatility
+
+Focus This Week:
+Wait at least 15 minutes after any losing trade before re-entering.
+
+Important:
+- Keep wording short
+- Human
+- Emotionally intelligent
+- Not robotic
+- Not overly technical
+
+--------------------------------------------------
+SECTION 2 — BEHAVIORAL DNA
+--------------------------------------------------
+
+Add a premium insight card called:
+
+Behavioral DNA
+
+Purpose:
+Summarize the trader's psychological execution profile.
+
+Example outputs:
+
+"You perform best in low-frequency, high-conviction environments."
+
+"Execution quality declines significantly during impulsive trading sessions."
+
+"Your strongest edge appears during structured trend-following conditions."
+
+"Emotional decision-making increases during high-frequency sessions."
+
+Style:
+- Premium intelligence feel
+- Like a hedge fund behavioral psychologist
+- Concise
+- Powerful
+- High-signal
+
+--------------------------------------------------
+ADDITIONAL REQUIREMENTS
+--------------------------------------------------
+
+1. Use mock/generated intelligence for now
+(no backend yet)
+
+2. Keep layout responsive
+
+3. Maintain current premium dark fintech UI
+
+4. Make the dashboard feel:
+- alive
+- intelligent
+- psychologically aware
+- premium SaaS
+
+5. Do not redesign existing sections.
+Only extend the dashboard intelligently.
