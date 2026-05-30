@@ -1,6 +1,5 @@
 import type { AiensieReport } from "@workspace/aiensie-engine";
 import type { MockReport } from "@/components/dashboard/mock-data";
-import { EXCHANGE_ASSET_CLASS } from "@/components/dashboard/mock-data";
 
 // ── Storage key ────────────────────────────────────────────────────────────────
 // Replace this constant's read/write calls with Supabase queries when adding a backend.
@@ -18,6 +17,25 @@ export interface SavedReport {
   report:     AiensieReport;
 }
 
+// ── Asset class normaliser ──────────────────────────────────────────────────────
+// Maps the engine's CrossMarketIntelligence.assetClass display label
+// (e.g. "Forex / FX") to the short filter string used in the dashboard
+// (e.g. "Forex").  "Unknown" is used instead of "Crypto" for unrecognised data.
+
+const DISPLAY_TO_FILTER: Record<string, string> = {
+  "Crypto / Digital Assets": "Crypto",
+  "Equities / Stocks":       "Stocks",
+  "Forex / FX":              "Forex",
+  "Options":                 "Options",
+  "Futures":                 "Futures",
+  "Other Markets":           "Unknown",
+};
+
+function normalizeAssetClass(report: AiensieReport): string {
+  const displayLabel = report.crossMarketIntelligence?.assetClass ?? "";
+  return DISPLAY_TO_FILTER[displayLabel] ?? "Unknown";
+}
+
 // ── Write ──────────────────────────────────────────────────────────────────────
 
 export function saveFullReport(
@@ -25,7 +43,7 @@ export function saveFullReport(
   exchange:   string,
   tradeCount: number,
 ): SavedReport {
-  const assetClass = EXCHANGE_ASSET_CLASS[exchange] ?? "Crypto";
+  const assetClass = normalizeAssetClass(report);
   const saved: SavedReport = {
     id:         `sr-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     timestamp:  Date.now(),

@@ -5,6 +5,14 @@ export { parseBybit }        from "./parseBybit.js";
 export { parseOKX }          from "./parseOKX.js";
 export { parseHyperliquid }  from "./parseHyperliquid.js";
 export { parseGeneric }      from "./parseGeneric.js";
+export {
+  classifySymbol,
+  isForexSymbol,
+  isCryptoSymbol,
+  isIndonesianStock,
+  majorityAssetClass,
+  assetClassDisplayToFilter,
+} from "./classify.js";
 
 import { detectExchange }   from "./detect.js";
 import { parseBinance }     from "./parseBinance.js";

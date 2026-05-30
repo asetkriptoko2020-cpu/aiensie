@@ -1,4 +1,5 @@
 import type { Trade, AssetClass, AiensieScores, TradeMetrics, DetectedPattern } from "./types.js";
+import { classifySymbol, majorityAssetClass } from "./parsers/classify.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -22,29 +23,44 @@ export interface CrossMarketIntelligence {
 
 // ── Asset class detection ─────────────────────────────────────────────────────
 
-const CEX_EXCHANGES    = ["binance", "bybit", "okx", "coinbase", "kucoin", "kraken", "gate"];
-const DEX_EXCHANGES    = ["hyperliquid", "dydx", "gmx", "uniswap", "jupiter", "synthetix"];
-const FOREX_EXCHANGES  = ["metatrader", "mt4", "mt5", "oanda", "fxpro", "pepperstone"];
-const STOCK_EXCHANGES  = ["ibkr", "robinhood", "td ameritrade", "tastytrade", "webull"];
+const CEX_EXCHANGES    = ["binance", "bybit", "okx", "coinbase", "kucoin", "kraken", "gate", "bitget", "huobi", "mexc"];
+const DEX_EXCHANGES    = ["hyperliquid", "dydx", "gmx", "uniswap", "jupiter", "synthetix", "kwenta", "vertex"];
+const FOREX_EXCHANGES  = ["metatrader", "mt4", "mt5", "oanda", "fxpro", "pepperstone", "ic markets", "xm broker", "exness", "tickmill", "fxtm", "axitrader", "forex"];
+const STOCK_EXCHANGES  = ["ibkr", "interactive brokers", "robinhood", "td ameritrade", "tastytrade", "webull", "stockbit", "bibit", "bca sekuritas", "mandiri sekuritas", "idx", "bursa", "indo"];
 
 function detectAssetClass(trades: Trade[], exchangeLabel?: string): AssetClass {
   const label = exchangeLabel?.toLowerCase() ?? "";
 
-  if (CEX_EXCHANGES.some((e) => label.includes(e))) return "crypto";
-  if (DEX_EXCHANGES.some((e) => label.includes(e)))  return "crypto";
+  // Exchange label matching
+  if (CEX_EXCHANGES.some((e) => label.includes(e)))   return "crypto";
+  if (DEX_EXCHANGES.some((e) => label.includes(e)))   return "crypto";
   if (FOREX_EXCHANGES.some((e) => label.includes(e))) return "forex";
   if (STOCK_EXCHANGES.some((e) => label.includes(e))) return "equities";
   if (label.includes("option"))  return "options";
   if (label.includes("future"))  return "futures";
   if (label.includes("etf"))     return "equities";
-  if (label.includes("stock"))   return "equities";
-  if (label.includes("forex") || label.includes("fx")) return "forex";
+  if (label.includes("stock") || label.includes("saham")) return "equities";
+  if (label.includes("forex") || label.includes("fx") || label.includes("currency")) return "forex";
   if (label.includes("crypto"))  return "crypto";
   if (label === "sample data")   return "crypto";
 
-  // Fall back to trade-level asset class
-  const tradeLevelClass = trades.find((t) => t.assetClass)?.assetClass;
-  return tradeLevelClass ?? "crypto";
+  // Trade-level: majority vote using pre-classified assetClass on each trade
+  const tradeClasses = trades
+    .map((t) => t.assetClass)
+    .filter((c): c is AssetClass => !!c && c !== "other");
+  const majority = majorityAssetClass(tradeClasses);
+  if (majority) return majority;
+
+  // Symbol-level fallback: classify a sample of symbols and majority-vote
+  const symbolClasses = trades
+    .slice(0, 50)
+    .map((t) => classifySymbol(t.symbol))
+    .filter((c): c is AssetClass => c !== null);
+  const symbolMajority = majorityAssetClass(symbolClasses);
+  if (symbolMajority) return symbolMajority;
+
+  // Unknown — do NOT default to crypto
+  return "other";
 }
 
 // ── Per-asset-class profiles ──────────────────────────────────────────────────
