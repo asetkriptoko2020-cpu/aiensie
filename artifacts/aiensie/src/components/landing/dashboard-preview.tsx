@@ -1,4 +1,6 @@
 import { TrendingUp, TrendingDown, Target, Shield, Activity, Brain, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/ui/fade-in";
 
 const assessmentMetrics = [
@@ -140,10 +142,12 @@ export function DashboardPreview() {
         </FadeIn>
 
         <FadeIn delay={0.3} className="text-center mt-8">
-          <button className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-medium">
-            View full assessment dashboard
-            <ArrowRight className="h-4 w-4" />
-          </button>
+          <Link href="/dashboard">
+            <Button size="lg" className="glow-primary">
+              View Pro Dashboard Demo
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </Link>
         </FadeIn>
       </div>
     </section>

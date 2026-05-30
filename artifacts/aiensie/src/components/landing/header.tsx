@@ -44,9 +44,16 @@ export function Header() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" size="sm">
-              Sign In
-            </Button>
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm">
+                Dashboard
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                Sign In
+              </Button>
+            </Link>
             <Link href="/assessment">
               <Button size="sm" className="glow-primary">
                 Start Assessment
@@ -82,9 +89,16 @@ export function Header() {
               </a>
             ))}
             <div className="pt-4 flex flex-col gap-2">
-              <Button variant="ghost" className="w-full justify-center">
-                Sign In
-              </Button>
+              <Link href="/dashboard">
+                <Button variant="ghost" className="w-full justify-center">
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button variant="ghost" className="w-full justify-center">
+                  Sign In
+                </Button>
+              </Link>
               <Link href="/assessment">
                 <Button className="w-full justify-center glow-primary">
                   Start Assessment
