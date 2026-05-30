@@ -141,14 +141,6 @@ export function DashboardPreview() {
           </div>
         </FadeIn>
 
-        <FadeIn delay={0.3} className="text-center mt-8">
-          <Link href="/dashboard">
-            <Button size="lg" className="glow-primary">
-              View Pro Dashboard Demo
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </Link>
-        </FadeIn>
       </div>
     </section>
   );

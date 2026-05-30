@@ -9,6 +9,7 @@ import {
   PlusCircle,
   LogOut,
   Brain,
+  ArrowLeft,
 } from "lucide-react";
 import { MOCK_USER } from "./mock-data";
 
@@ -34,7 +35,7 @@ export function Sidebar() {
            style={{ background: "oklch(0.1 0.006 280 / 0.95)", backdropFilter: "blur(16px)" }}>
 
       {/* ── Logo ── */}
-      <div className="flex items-center gap-2.5 px-5 h-16 border-b border-border/40 flex-shrink-0">
+      <Link href="/" className="flex items-center gap-2.5 px-5 h-16 border-b border-border/40 flex-shrink-0 hover:opacity-80 transition-opacity">
         <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center">
           <Brain className="w-3.5 h-3.5 text-primary" />
         </div>
@@ -44,7 +45,7 @@ export function Sidebar() {
             Pro
           </span>
         )}
-      </div>
+      </Link>
 
       {/* ── Nav ── */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
@@ -63,6 +64,15 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* ── Back to Website ── */}
+      <div className="px-3 pb-1">
+        <Link href="/"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all cursor-pointer">
+          <ArrowLeft className="w-3.5 h-3.5 flex-shrink-0" />
+          Back to Website
+        </Link>
+      </div>
 
       {/* ── Upgrade CTA ── */}
       <div className="px-3 pb-2">
