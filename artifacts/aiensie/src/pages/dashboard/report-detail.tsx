@@ -4,7 +4,10 @@ import { ArrowLeft, CheckCircle2, XCircle, AlertTriangle, ChevronRight, BarChart
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { MOCK_REPORTS } from "@/components/dashboard/mock-data";
 import { getSavedReportById, savedReportToMockReport } from "@/lib/report-store";
+import { ScoreReport } from "@/components/report/ScoreReport";
 import { Button } from "@/components/ui/button";
+
+// ── Helpers for mock-only fallback view ───────────────────────────────────────
 
 const DIMENSIONS = [
   { key: "discipline"        as const, label: "Discipline",        color: "#06b6d4" },
@@ -59,15 +62,17 @@ const SEVERITY_CONFIG = {
   low:    { bg: "bg-emerald-950/50",border:"border-emerald-800/40",text:"text-emerald-400",badge: "Minor"    },
 };
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function ReportDetailPage() {
   const params = useParams<{ id: string }>();
   const savedLookup = params.id ? getSavedReportById(params.id) : null;
-  const report =
+  const mockReport =
     savedLookup
       ? savedReportToMockReport(savedLookup)
       : MOCK_REPORTS.find((r) => r.id === params.id);
 
-  if (!report) {
+  if (!mockReport && !savedLookup) {
     return (
       <DashboardLayout>
         <div className="p-6 flex flex-col items-center justify-center h-64 gap-4">
@@ -78,6 +83,52 @@ export default function ReportDetailPage() {
     );
   }
 
+  // ── Pro path: full AiensieReport available ────────────────────────────────
+  if (savedLookup) {
+    const date = new Date(savedLookup.date).toLocaleDateString("en-US", {
+      month: "long", day: "numeric", year: "numeric",
+    });
+
+    return (
+      <DashboardLayout>
+        <div className="p-6 max-w-4xl">
+
+          {/* Back + PDF export */}
+          <div className="flex items-center justify-between gap-3 mb-5">
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard/reports">
+                <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  <ArrowLeft className="w-3.5 h-3.5" /> Reports
+                </button>
+              </Link>
+              <span className="text-muted-foreground/40">/</span>
+              <span className="text-xs text-muted-foreground">{date}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 rounded-xl text-xs h-8 flex-shrink-0"
+              onClick={() => window.print()}
+            >
+              <Printer className="w-3.5 h-3.5" /> Export PDF
+            </Button>
+          </div>
+
+          {/* Full Pro report */}
+          <ScoreReport
+            report={savedLookup.report}
+            exchange={savedLookup.exchange}
+            tradeCount={savedLookup.tradeCount}
+            isPro={true}
+            onReset={() => {}}
+          />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // ── Mock fallback: simplified view ────────────────────────────────────────
+  const report = mockReport!;
   const scoreColor = report.aiensieScore >= 70 ? "#10b981" : report.aiensieScore >= 55 ? "#06b6d4" : report.aiensieScore >= 40 ? "#f59e0b" : "#ef4444";
 
   return (
@@ -110,7 +161,6 @@ export default function ReportDetailPage() {
         {/* ── Score header ── */}
         <div className="glass rounded-2xl p-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-            {/* Ring */}
             <div className="w-24 h-24 flex-shrink-0 relative">
               <svg width="96" height="96" viewBox="0 0 96 96" style={{ transform: "rotate(-90deg)" }}>
                 <circle cx="48" cy="48" r="38" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7" />
@@ -142,7 +192,6 @@ export default function ReportDetailPage() {
             </div>
           </div>
 
-          {/* Stat cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-6 pt-5 border-t border-border/40">
             {[
               { label: "Win Rate",          value: `${(report.winRate * 100).toFixed(1)}%` },
