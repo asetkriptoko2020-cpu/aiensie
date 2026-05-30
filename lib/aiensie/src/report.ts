@@ -13,6 +13,7 @@ import { classifyPersona }                   from "./persona.js";
 import { analyzeSessionIntelligence }        from "./session-intelligence.js";
 import { buildArchetypeDNA }                 from "./archetype.js";
 import { generateSmartSummary }              from "./smart-summary.js";
+import { analyzeCrossMarket }               from "./cross-market.js";
 
 // ── Label ─────────────────────────────────────────────────────────────────────
 
@@ -166,10 +167,11 @@ export function generateReport(trades: Trade[], exchangeLabel?: string): Aiensie
   const overall        = computeAiensieScore(scores);
   const label          = scoreLabel(overall);
   const type           = traderType(overall, scores, metrics, patterns);
-  const dynamicPersona = classifyPersona(scores, metrics, patterns, overall);
-  const sessionIntelligence = analyzeSessionIntelligence(trades);
-  const archetypeDNA   = buildArchetypeDNA(scores, metrics, patterns, overall);
-  const smartSummary   = generateSmartSummary(overall, scores, metrics, patterns, exchangeLabel);
+  const dynamicPersona         = classifyPersona(scores, metrics, patterns, overall);
+  const sessionIntelligence    = analyzeSessionIntelligence(trades);
+  const archetypeDNA           = buildArchetypeDNA(scores, metrics, patterns, overall);
+  const crossMarketIntelligence = analyzeCrossMarket(trades, scores, metrics, patterns, overall, exchangeLabel);
+  const smartSummary           = generateSmartSummary(overall, scores, metrics, patterns, exchangeLabel);
 
   return {
     aiensieScore:     overall,
@@ -185,6 +187,7 @@ export function generateReport(trades: Trade[], exchangeLabel?: string): Aiensie
     actionPlan:       buildActionPlan(scores, patterns, metrics),
     sessionIntelligence,
     archetypeDNA,
+    crossMarketIntelligence,
     smartSummary,
   };
 }

@@ -1,0 +1,211 @@
+Upgrade the Aiensie Pro Dashboard into a deeper behavioral intelligence system.
+
+Do NOT redesign the current UI.
+Extend the existing premium dark fintech experience only.
+
+GOAL:
+Complete the missing intelligence layer so Aiensie feels like a real adaptive behavioral operating system.
+
+==================================================
+1. TRUE DYNAMIC PERSONA ENGINE
+==================================================
+
+Current issue:
+Trader personas still feel semi-static/template-based.
+
+Upgrade the logic so personas are dynamically generated from behavioral conditions.
+
+Use combinations of:
+- trade frequency
+- revenge trading
+- emotional instability
+- risk consistency
+- position sizing
+- streak behavior
+- win/loss recovery
+- volatility response
+- session timing
+
+Example outputs:
+- Reactive Momentum Trader
+- Structured Conviction Trader
+- Emotional Scalper
+- Selective Swing Operator
+- Discipline-Driven Executor
+- Volatility-Chasing Trader
+- High-Pressure Reactive Trader
+- Process-Oriented Performer
+
+Each persona should:
+- feel psychologically unique
+- change depending on uploaded reports
+- have matching summaries and tone
+
+==================================================
+2. SESSION INTELLIGENCE (FULL IMPLEMENTATION)
+==================================================
+
+Create a fully implemented premium section:
+"Session Intelligence"
+
+Analyze:
+- Morning sessions
+- Afternoon sessions
+- Late-night sessions
+- High-volatility sessions
+- Slow market sessions
+
+Show:
+- Best execution window
+- Worst execution window
+- Emotional risk period
+- Most disciplined session
+- Highest profitability session
+
+Examples:
+- "Your best execution occurs during structured morning sessions."
+- "Late-night trading correlates with impulsive re-entries."
+
+Style:
+- concise
+- psychologically aware
+- institutional tone
+
+==================================================
+3. BEHAVIOR EVOLUTION SYSTEM
+==================================================
+
+Implement true historical behavioral comparison.
+
+Compare:
+Latest upload
+vs
+previous uploads/reports.
+
+Generate dynamic evolution insights:
+
+Examples:
+- Emotional stability improved over the last 3 uploads
+- Revenge trading frequency decreased significantly
+- Position sizing consistency improved
+- Trade patience increased during volatile sessions
+- Risk discipline deteriorated this month
+
+Create:
+"Behavior Evolution"
+
+Use:
+- progression arrows
+- positive/negative shifts
+- concise explanations
+
+==================================================
+4. ADVANCED CONDITIONAL REPORT WRITING
+==================================================
+
+Make report writing significantly more adaptive.
+
+Examples:
+
+IF:
+- revenge trading increasing
+THEN:
+"Recent sessions show increasing emotional re-entry behavior after losses."
+
+IF:
+- discipline improving
+THEN:
+"Execution structure is becoming more stable and repeatable."
+
+IF:
+- volatility affects performance
+THEN:
+"Execution quality declines during high-volatility conditions."
+
+IF:
+- overtrading decreasing
+THEN:
+"Trade frequency is becoming more selective and controlled."
+
+Important:
+- avoid generic motivational language
+- avoid robotic AI tone
+- concise
+- elite behavioral analyst tone
+- human-readable
+
+==================================================
+5. CROSS-MARKET INTELLIGENCE
+==================================================
+
+Implement behavioral comparison across asset classes.
+
+Examples:
+- Crypto behavior is more impulsive than stock trading behavior
+- Forex sessions trigger higher emotional volatility
+- Equity trading shows stronger patience and discipline
+- Options trading increases aggressive sizing tendencies
+
+Support:
+- Crypto
+- Stocks
+- Forex
+- ETF
+- Options
+
+Create:
+"Cross-Market Behavioral Insights"
+
+==================================================
+6. TRUE BEHAVIORAL DNA
+==================================================
+
+Upgrade Behavioral DNA from simple insight text into:
+deep psychological execution profiling.
+
+Examples:
+- "You perform best in low-frequency, high-conviction environments."
+- "Execution quality deteriorates rapidly during impulsive high-frequency sessions."
+- "Your edge strengthens when position sizing remains fixed."
+- "You rely heavily on momentum confidence after winning streaks."
+
+Make:
+- multiple DNA insights
+- adaptive
+- psychologically sharp
+- premium intelligence feel
+
+==================================================
+7. SMART INTELLIGENCE ALERTS
+==================================================
+
+Upgrade Smart Alerts into dynamic intelligence monitoring.
+
+Examples:
+- Emotional instability increased this week
+- Revenge trading dropped by 42%
+- Late-night sessions are reducing profitability
+- Risk consistency improved over the last 2 uploads
+- Trade patience deteriorated during volatility spikes
+
+Alert types:
+- Improvement
+- Warning
+- Critical
+- Insight
+
+==================================================
+IMPORTANT
+==================================================
+
+- Keep current UI structure
+- Do not redesign pages
+- Use mock logic/intelligence for now
+- No backend/database yet
+- Keep modular architecture
+- Make Aiensie feel:
+  - adaptive
+  - psychologically aware
+  - elite
+  - alive
+  - premium SaaS

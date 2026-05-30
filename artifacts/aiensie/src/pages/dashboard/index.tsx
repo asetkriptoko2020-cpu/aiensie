@@ -14,6 +14,7 @@ import {
 } from "@/components/dashboard/mock-data";
 import { MarketFilter, ActiveMarket } from "@/components/dashboard/market-filter";
 import { Button } from "@/components/ui/button";
+import { generateSmartAlerts } from "@/lib/smart-alerts";
 
 function ScoreMiniRing({ score }: { score: number }) {
   const [progress, setProgress] = useState(0);
@@ -48,13 +49,6 @@ function CustomTooltip({ active, payload, label }: any) {
   );
 }
 
-const SMART_ALERTS = [
-  { type: "warning",     message: "Revenge trading frequency increased this week. Review trades placed within 10 minutes of a loss." },
-  { type: "improvement", message: "Position sizing consistency improved across your last 3 assessments." },
-  { type: "insight",     message: "Emotional control scores are consistently lower during high-volatility sessions — a recurring pattern worth addressing." },
-  { type: "improvement", message: "Risk consistency improved this month. Your risk/reward ratios are stabilising." },
-  { type: "critical",    message: "Crypto behavior shows more impulsive entries on volatile days. Consider setting a hard trade limit." },
-];
 
 const ALERT_META: Record<string, { color: string; bg: string; border: string; label: string; Icon: React.ElementType }> = {
   improvement: { color: "#10b981", bg: "oklch(0.13 0.02 160 / 0.5)",  border: "rgba(16,185,129,0.18)",  label: "Improvement", Icon: CheckCircle2  },
@@ -75,6 +69,8 @@ export default function DashboardOverview() {
   const previous = hasReports && filteredReports.length > 1 ? filteredReports[filteredReports.length - 2] : null;
   const delta    = latest && previous ? latest.aiensieScore - previous.aiensieScore : 0;
   const isProUser = MOCK_USER.plan === "pro";
+
+  const smartAlerts = generateSmartAlerts(filteredReports);
 
   const filteredTrend = filteredReports.map((r) => ({
     label: new Date(r.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
@@ -228,7 +224,7 @@ export default function DashboardOverview() {
                 <span className="ml-auto text-[10px] text-muted-foreground/50 uppercase tracking-widest">AI-generated · updated daily</span>
               </div>
               <div className="space-y-2.5">
-                {SMART_ALERTS.map(({ type, message }, i) => {
+                {smartAlerts.map(({ type, message }, i) => {
                   const meta = ALERT_META[type];
                   const Icon = meta.Icon;
                   return (

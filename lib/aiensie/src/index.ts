@@ -15,6 +15,9 @@ export type {
   SessionIntelligence,
   ArchetypeSignal,
   TraderArchetypeDNA,
+  CrossMarketInsightType,
+  CrossMarketInsight,
+  CrossMarketIntelligence,
   BehaviorSnapshot,
   EvolutionDelta,
   BehaviorEvolution,
@@ -31,6 +34,7 @@ export { classifyPersona }                       from "./persona.js";
 export { analyzeSessionIntelligence }            from "./session-intelligence.js";
 export { buildArchetypeDNA }                     from "./archetype.js";
 export { generateSmartSummary }                  from "./smart-summary.js";
+export { analyzeCrossMarket }                    from "./cross-market.js";
 
 // ── Narrative engine ──────────────────────────────────────────────────────────
 export type { NarrativeResult }                  from "./narrative/generateNarrative.js";

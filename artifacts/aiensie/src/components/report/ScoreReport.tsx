@@ -22,6 +22,7 @@ import type { AiensieReport, AiensieScores, DetectedPattern } from "@workspace/a
 import { SessionIntelligenceCard }  from "@/components/report/SessionIntelligenceCard";
 import { TraderArchetypeCard }      from "@/components/report/TraderArchetypeCard";
 import { BehaviorEvolutionCard }    from "@/components/report/BehaviorEvolutionCard";
+import CrossMarketCard              from "@/components/report/CrossMarketCard";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -377,7 +378,7 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
   const {
     aiensieScore, label, traderType, dynamicPersona,
     scores, metrics, detectedPatterns, strengths, weaknesses, actionPlan,
-    sessionIntelligence, archetypeDNA,
+    sessionIntelligence, archetypeDNA, crossMarketIntelligence,
   } = report;
 
   useEffect(() => {
@@ -538,7 +539,10 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
       {/* ── 6. Behavioral DNA / Archetype ── */}
       <TraderArchetypeCard data={archetypeDNA} />
 
-      {/* ── 7. Behavior Evolution ── */}
+      {/* ── 7. Cross-Market Intelligence ── */}
+      <CrossMarketCard data={crossMarketIntelligence} />
+
+      {/* ── 8. Behavior Evolution ── */}
       <BehaviorEvolutionCard currentReport={report} />
 
       {/* ── 8. Key Strengths ── */}

@@ -106,6 +106,26 @@ export interface TraderArchetypeDNA {
   edgeProfile: string;
 }
 
+// ── Cross-Market Intelligence ─────────────────────────────────────────────────
+
+export type CrossMarketInsightType = "strength" | "risk" | "comparison" | "recommendation";
+
+export interface CrossMarketInsight {
+  type:       CrossMarketInsightType;
+  text:       string;
+  confidence: number;
+}
+
+export interface CrossMarketIntelligence {
+  assetClass:     string;
+  exchangeLabel:  string;
+  insights:       CrossMarketInsight[];
+  marketProfile:  string;
+  executionStyle: string;
+  primaryRisk:    string;
+  behavioralNote: string;
+}
+
 // ── Behavior Memory Snapshot ──────────────────────────────────────────────────
 
 export interface BehaviorSnapshot {
@@ -156,5 +176,6 @@ export interface AiensieReport {
   actionPlan: string[];
   sessionIntelligence: SessionIntelligence | null;
   archetypeDNA: TraderArchetypeDNA;
+  crossMarketIntelligence: CrossMarketIntelligence;
   smartSummary: string;
 }
