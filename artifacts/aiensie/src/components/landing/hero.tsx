@@ -2,6 +2,19 @@ import { Link } from "wouter";
 import { ArrowRight, Sparkles, Shield, Target, Activity, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlobeBackground } from "./globe-background";
+import { motion } from "framer-motion";
+
+// ── Score ring constants ──────────────────────────────────────────────────────
+const RADIUS = 88;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS; // ≈ 552.92
+const SCORE = 75;
+const ARC_LENGTH = (SCORE / 100) * CIRCUMFERENCE;   // ≈ 414.69
+const TARGET_OFFSET = CIRCUMFERENCE - ARC_LENGTH;   // ≈ 138.23
+
+// Ring animation timing
+const RING_DURATION = 1.8;
+const RING_DELAY   = 0.3;
+const RING_EASE: [number, number, number, number] = [0.34, 1.06, 0.64, 1]; // slight overshoot → premium
 
 export function Hero() {
   return (
@@ -22,7 +35,6 @@ export function Hero() {
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 text-balance">
               Know Your{" "}
-              {/* Premium text with subtle moving sheen */}
               <span className="relative inline-block">
                 <span
                   className="text-transparent bg-clip-text animate-gradient"
@@ -35,10 +47,7 @@ export function Hero() {
                   Trading Mind
                 </span>
                 {/* Apple-style barely-visible soft sheen */}
-                <span
-                  aria-hidden
-                  className="absolute inset-0 overflow-hidden pointer-events-none rounded-sm"
-                >
+                <span aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none rounded-sm">
                   <span
                     className="animate-heading-sheen absolute inset-y-0 w-[28%]"
                     style={{
@@ -88,40 +97,132 @@ export function Hero() {
                 <p className="text-sm text-muted-foreground mb-2">Your Aiensie Score</p>
 
                 <div className="relative inline-flex items-center justify-center">
-                  {/* SVG ring with gentle glow breathe */}
                   <svg
-                    className="w-48 h-48 transform -rotate-90 animate-ring-breathe"
+                    width="192"
+                    height="192"
+                    viewBox="0 0 192 192"
+                    className="transform -rotate-90"
                     style={{ overflow: "visible" }}
                   >
+                    <defs>
+                      {/* Progress arc gradient */}
+                      <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%"   stopColor="oklch(0.7 0.15 250)" />
+                        <stop offset="100%" stopColor="oklch(0.65 0.2 170)" />
+                      </linearGradient>
+
+                      {/* Glow filter for the blur trail */}
+                      <filter id="arcGlow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+                      </filter>
+                    </defs>
+
+                    {/* Track ring */}
                     <circle
-                      cx="96" cy="96" r="88"
+                      cx="96" cy="96" r={RADIUS}
                       stroke="currentColor"
                       strokeWidth="6"
                       fill="none"
                       className="text-secondary"
                     />
-                    <circle
-                      cx="96" cy="96" r="88"
-                      stroke="url(#gradient)"
-                      strokeWidth="6"
+
+                    {/* ── Glow trail — blurred duplicate arc, slightly wider ── */}
+                    <motion.circle
+                      cx="96" cy="96" r={RADIUS}
+                      stroke="url(#heroGradient)"
+                      strokeWidth="12"
                       fill="none"
-                      strokeDasharray="415 553"
                       strokeLinecap="round"
-                      className="transition-all duration-1000"
+                      filter="url(#arcGlow)"
+                      strokeDasharray={CIRCUMFERENCE}
+                      style={{ opacity: 0.45 }}
+                      initial={{ strokeDashoffset: CIRCUMFERENCE }}
+                      animate={{ strokeDashoffset: TARGET_OFFSET }}
+                      transition={{
+                        duration: RING_DURATION,
+                        delay: RING_DELAY,
+                        ease: RING_EASE,
+                      }}
                     />
-                    <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%"   stopColor="oklch(0.7 0.15 250)" />
-                        <stop offset="100%" stopColor="oklch(0.65 0.2 170)" />
-                      </linearGradient>
-                    </defs>
+
+                    {/* ── Main progress arc ── */}
+                    <motion.circle
+                      cx="96" cy="96" r={RADIUS}
+                      stroke="url(#heroGradient)"
+                      strokeWidth="7"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={CIRCUMFERENCE}
+                      initial={{ strokeDashoffset: CIRCUMFERENCE }}
+                      animate={{ strokeDashoffset: TARGET_OFFSET }}
+                      transition={{
+                        duration: RING_DURATION,
+                        delay: RING_DELAY,
+                        ease: RING_EASE,
+                      }}
+                    />
+
+                    {/* ── Bright tip dot — follows the leading edge ── */}
+                    {/*
+                      Tip dot: placed at the "start" position (top of circle, after -rotate-90).
+                      We rotate it around the center by the same arc fraction.
+                      In SVG coordinates (before CSS -rotate-90 wrapper):
+                        start pos = top:  cx=96, cy = 96 - r = 96 - 88 = 8
+                      CSS rotate on the SVG flips so we just rotate the dot around center.
+                    */}
+                    <motion.circle
+                      cx={96}
+                      cy={96 - RADIUS}   // top of the ring
+                      r={4.5}
+                      fill="oklch(0.92 0.1 210)"
+                      style={{
+                        transformOrigin: "96px 96px",
+                        filter: "drop-shadow(0 0 6px oklch(0.7 0.15 250)) drop-shadow(0 0 12px oklch(0.65 0.2 170 / 0.8))",
+                      }}
+                      initial={{ rotate: 0, opacity: 0 }}
+                      animate={{
+                        rotate: [0, (SCORE / 100) * 360],
+                        opacity: [0, 1, 1, 0],
+                      }}
+                      transition={{
+                        duration: RING_DURATION,
+                        delay: RING_DELAY,
+                        ease: RING_EASE,
+                        opacity: {
+                          times: [0, 0.05, 0.85, 1],
+                          duration: RING_DURATION,
+                          delay: RING_DELAY,
+                        },
+                      }}
+                    />
                   </svg>
 
-                  {/* Score content */}
+                  {/* Score content — fades in after ring settles */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-5xl font-bold text-foreground">75</span>
-                    <span className="text-sm text-muted-foreground">/100</span>
-                    <span className="text-xs text-primary font-medium mt-1">GOOD</span>
+                    <motion.span
+                      className="text-5xl font-bold text-foreground leading-none"
+                      initial={{ opacity: 0, scale: 0.85 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: RING_DELAY + RING_DURATION * 0.6, ease: "easeOut" }}
+                    >
+                      {SCORE}
+                    </motion.span>
+                    <motion.span
+                      className="text-sm text-muted-foreground"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.4, delay: RING_DELAY + RING_DURATION * 0.7 }}
+                    >
+                      /100
+                    </motion.span>
+                    <motion.span
+                      className="text-xs text-primary font-medium mt-1"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.4, delay: RING_DELAY + RING_DURATION * 0.8 }}
+                    >
+                      GOOD
+                    </motion.span>
                   </div>
                 </div>
               </div>
