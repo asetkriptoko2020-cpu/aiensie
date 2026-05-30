@@ -16,13 +16,13 @@ import {
   ChevronRight,
   BarChart3,
   Sparkles,
+  Lock,
+  Dna,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AiensieReport, AiensieScores, DetectedPattern } from "@workspace/aiensie-engine";
-import { SessionIntelligenceCard }  from "@/components/report/SessionIntelligenceCard";
-import { TraderArchetypeCard }      from "@/components/report/TraderArchetypeCard";
-import { BehaviorEvolutionCard }    from "@/components/report/BehaviorEvolutionCard";
-import CrossMarketCard              from "@/components/report/CrossMarketCard";
+import { Link } from "wouter";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -213,101 +213,37 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
   );
 }
 
-// ── Smart Summary Card ────────────────────────────────────────────────────────
+// ── Locked feature teaser ─────────────────────────────────────────────────────
 
-function SmartSummaryCard({ report }: { report: AiensieReport }) {
-  const [visible, setVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+type IconComponent2 = React.ComponentType<{ className?: string; style?: CSSProperties }>;
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.08 },
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-
-  const { aiensieScore, scores, metrics, detectedPatterns, smartSummary } = report;
-
-  // Block 1 — Smart summary (behavior-conditional)
-  // Block 2 — Main Risk
-  const topPattern =
-    detectedPatterns.find((p) => p.severity === "high") ??
-    detectedPatterns.find((p) => p.severity === "medium") ??
-    detectedPatterns[0];
-
-  let riskText: string;
-  if (topPattern) {
-    const name = topPattern.name;
-    riskText =
-      name === "Revenge Trading Risk"       ? "Revenge trading is your most active risk. Re-entering after losses is driven by emotion, not edge." :
-      name === "Holding Losses Too Long"    ? "Holding losers too long is compressing your results. Cutting losses faster would shift your numbers meaningfully." :
-      name === "Overconfidence After Wins"  ? "Overconfidence after winning streaks is increasing your exposure at exactly the wrong moment." :
-      name === "Overtrading"                ? `Trading too frequently at ${metrics.tradesPerActiveDay.toFixed(1)} trades/day is diluting your edge. Selectivity compounds.` :
-      name === "Erratic Position Sizing"    ? "Inconsistent sizing means results depend more on luck than process. A fixed risk-per-trade rule fixes this immediately." :
-      name === "Reliance on a Few Big Wins" ? "Your results lean heavily on a handful of large wins. The edge may be less repeatable than it appears." :
-                                              topPattern.description;
-  } else {
-    const dimScores: [keyof AiensieScores, string][] = [
-      ["disciplineScore",         "No major patterns detected. Greater trade selectivity is your highest-leverage next step."],
-      ["riskControlScore",        "No major patterns detected. Improving your win-to-loss size ratio is the key adjustment."],
-      ["consistencyScore",        "No major patterns detected. A more repeatable process would stabilize your results significantly."],
-      ["emotionalStabilityScore", "No major patterns detected. Structured post-loss rules would reduce emotional variance in decisions."],
-      ["decisionQualityScore",    "No major patterns detected. Entry and exit refinement is the clearest path to improvement."],
-    ];
-    const weakest = dimScores.reduce(
-      (min, curr) => scores[curr[0]] < scores[min[0]] ? curr : min,
-      dimScores[0],
-    );
-    riskText = weakest[1];
-  }
-
-  const coachText =
-    aiensieScore >= 70 ? "The gap between here and consistently strong is narrow — stay process-focused and don't optimise for recent results." :
-    aiensieScore >= 50 ? "The issues are specific, not systemic. One or two targeted changes can shift the trajectory quickly." :
-                         "Start with process, not outcomes. Getting sizing and loss management right changes everything else downstream.";
-
-  const blocks = [
-    { title: "Behavioral Assessment", text: smartSummary },
-    { title: "Main Risk",             text: riskText     },
-    { title: "Coaching Insight",      text: coachText    },
-  ];
-
+function LockedFeatureTeaser({ title, description, icon: Icon, accent }: {
+  title: string;
+  description: string;
+  icon: IconComponent2;
+  accent: string;
+}) {
   return (
-    <div ref={ref} className="glass rounded-2xl p-6 overflow-hidden">
-      <SectionHeader label="Behavioral Intelligence Summary" icon={Brain} />
-
-      <div className="space-y-3">
-        {blocks.map((block, i) => (
-          <div
-            key={block.title}
-            className="rounded-xl bg-card/50 border border-border/40 p-4"
-            style={{
-              opacity:    visible ? 1 : 0,
-              transform:  visible ? "translateY(0)" : "translateY(8px)",
-              transition: `opacity 0.45s ease ${i * 120}ms, transform 0.45s ease ${i * 120}ms`,
-            }}
-          >
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1.5">
-              {block.title}
-            </p>
-            <p className="text-sm text-foreground/80 leading-relaxed">{block.text}</p>
-          </div>
-        ))}
-      </div>
-
+    <div className="glass rounded-2xl p-5 relative overflow-hidden border border-border/60">
       <div
-        className="mt-4 pt-4 border-t border-border/30 flex items-center gap-2"
-        style={{
-          opacity:    visible ? 1 : 0,
-          transition: `opacity 0.45s ease ${blocks.length * 120 + 80}ms`,
-        }}
-      >
-        <span className="w-1.5 h-1.5 rounded-full bg-primary/50" />
-        <p className="text-[11px] text-muted-foreground/50 tracking-wide">
-          Generated from {metrics.totalTrades} trades · Aiensie Behavioral Engine
-        </p>
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: `radial-gradient(ellipse 60% 50% at 5% 50%, ${accent}08, transparent)` }}
+      />
+      <div className="relative z-10 flex items-center gap-4">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border"
+          style={{ background: `${accent}12`, borderColor: `${accent}30` }}
+        >
+          <Icon className="w-5 h-5" style={{ color: accent }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <Lock className="w-3 h-3 text-muted-foreground/40 flex-shrink-0" />
+            <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Pro Feature</p>
+          </div>
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
+        </div>
       </div>
     </div>
   );
@@ -378,8 +314,12 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
   const {
     aiensieScore, label, traderType, dynamicPersona,
     scores, metrics, detectedPatterns, strengths, weaknesses, actionPlan,
-    sessionIntelligence, archetypeDNA, crossMarketIntelligence,
   } = report;
+
+  const freePatterns   = detectedPatterns.slice(0, 2);
+  const freeStrengths  = strengths.slice(0, 2);
+  const freeWeaknesses = weaknesses.slice(0, 2);
+  const freeActions    = actionPlan.slice(0, 3);
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -391,8 +331,8 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
   const profitFactor = metrics.profitFactor.toFixed(2);
   const maxStreak    = String(metrics.maxConsecutiveLosses);
 
-  const highSeverityCount   = detectedPatterns.filter((p) => p.severity === "high").length;
-  const mediumSeverityCount = detectedPatterns.filter((p) => p.severity === "medium").length;
+  const highSeverityCount   = freePatterns.filter((p) => p.severity === "high").length;
+  const mediumSeverityCount = freePatterns.filter((p) => p.severity === "medium").length;
 
   return (
     <div ref={topRef} className="space-y-5">
@@ -481,14 +421,11 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         </div>
       </div>
 
-      {/* ── 3. Behavioral Intelligence Summary (Smart) ── */}
-      <SmartSummaryCard report={report} />
-
-      {/* ── 4. Detected Behavioral Patterns ── */}
+      {/* ── 3. Detected Behavioral Patterns (top 2 only) ── */}
       <div className="glass rounded-2xl p-6">
         <SectionHeader label="Detected Behavioral Patterns" icon={AlertTriangle} />
 
-        {detectedPatterns.length === 0 ? (
+        {freePatterns.length === 0 ? (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/40">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <div>
@@ -514,16 +451,23 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
                     {mediumSeverityCount} moderate {mediumSeverityCount === 1 ? "pattern" : "patterns"}
                   </span>
                 )}
-                {detectedPatterns.filter((p) => p.severity === "low").length > 0 && (
+                {freePatterns.filter((p) => p.severity === "low").length > 0 && (
                   <span className="flex items-center gap-1.5 text-xs text-emerald-400">
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    {detectedPatterns.filter((p) => p.severity === "low").length} minor {detectedPatterns.filter((p) => p.severity === "low").length === 1 ? "signal" : "signals"}
+                    {freePatterns.filter((p) => p.severity === "low").length} minor{" "}
+                    {freePatterns.filter((p) => p.severity === "low").length === 1 ? "signal" : "signals"}
+                  </span>
+                )}
+                {detectedPatterns.length > 2 && (
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground/50">
+                    <Lock className="w-3 h-3" />
+                    +{detectedPatterns.length - 2} more in Pro
                   </span>
                 )}
               </div>
             )}
             <div className="space-y-3">
-              {detectedPatterns.map((p) => (
+              {freePatterns.map((p) => (
                 <PatternCard key={p.name} pattern={p} />
               ))}
             </div>
@@ -531,34 +475,20 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         )}
       </div>
 
-      {/* ── 5. Session Intelligence ── */}
-      {sessionIntelligence && (
-        <SessionIntelligenceCard data={sessionIntelligence} />
-      )}
-
-      {/* ── 6. Behavioral DNA / Archetype ── */}
-      <TraderArchetypeCard data={archetypeDNA} />
-
-      {/* ── 7. Cross-Market Intelligence ── */}
-      <CrossMarketCard data={crossMarketIntelligence} />
-
-      {/* ── 8. Behavior Evolution ── */}
-      <BehaviorEvolutionCard currentReport={report} />
-
-      {/* ── 8. Key Strengths ── */}
+      {/* ── 4. Key Strengths (top 2) ── */}
       <div className="glass rounded-2xl p-6">
         <SectionHeader label="What You're Doing Well" icon={CheckCircle2} />
         <ul className="space-y-2.5">
-          {strengths.map((s) => (
+          {freeStrengths.map((s) => (
             <StrengthItem key={s} text={s} />
           ))}
         </ul>
       </div>
 
-      {/* ── 9. Risk Weaknesses ── */}
+      {/* ── 5. Risk Weaknesses (top 2) ── */}
       <div className="glass rounded-2xl p-6">
         <SectionHeader label="Where You're Losing Ground" icon={XCircle} />
-        {weaknesses.length === 0 ? (
+        {freeWeaknesses.length === 0 ? (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-950/30 border border-emerald-800/30">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <p className="text-sm text-emerald-400">
@@ -567,27 +497,55 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
           </div>
         ) : (
           <ul className="space-y-2.5">
-            {weaknesses.map((w) => (
+            {freeWeaknesses.map((w) => (
               <WeaknessItem key={w} text={w} />
             ))}
           </ul>
         )}
       </div>
 
-      {/* ── 10. Personalised Action Plan ── */}
+      {/* ── 6. Action Plan (first 3 steps) ── */}
       <div className="glass rounded-2xl p-6">
         <SectionHeader label="Your Action Plan" icon={Zap} />
         <p className="text-xs text-muted-foreground mb-4 -mt-1">
           Specific steps based on your trading data — not generic advice. Start with step 1.
         </p>
         <ol className="space-y-2.5">
-          {actionPlan.map((item, i) => (
+          {freeActions.map((item, i) => (
             <ActionItem key={i} index={i + 1} text={item} />
           ))}
         </ol>
       </div>
 
-      {/* ── 11. Disclaimer ── */}
+      {/* ── 7. Locked Pro feature teasers ── */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2.5 px-1">
+          <Lock className="w-3.5 h-3.5 text-muted-foreground/40" />
+          <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-widest">
+            Unlock with Pro
+          </p>
+        </div>
+        <LockedFeatureTeaser
+          title="Unlock Behavioral DNA in Pro"
+          description="See your full psychological execution profile, edge profile, and trader archetype signals."
+          icon={Dna}
+          accent="#a78bfa"
+        />
+        <LockedFeatureTeaser
+          title="Track Your Progress Over Time"
+          description="Compare behavioral scores across multiple assessments and watch how your discipline evolves."
+          icon={TrendingUp}
+          accent="#06b6d4"
+        />
+        <LockedFeatureTeaser
+          title="Compare Crypto, Stocks, and Forex Behavior"
+          description="Discover how your psychology holds up across different markets and asset classes."
+          icon={Globe}
+          accent="#38bdf8"
+        />
+      </div>
+
+      {/* ── 8. Disclaimer ── */}
       <div className="flex items-start gap-3 p-4 rounded-xl bg-card/40 border border-border/40">
         <Info className="w-4 h-4 text-muted-foreground/60 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground/70 leading-relaxed">
@@ -605,11 +563,13 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
           <RotateCcw className="w-4 h-4 mr-2" />
           New Assessment
         </Button>
-        <Button className="flex-1 h-12 glow-primary">
-          <Sparkles className="w-4 h-4 mr-2" />
-          Upgrade for Full Intelligence
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
+        <Link href="/dashboard" className="flex-1">
+          <Button className="w-full h-12 glow-primary">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Upgrade for Full Intelligence
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </Link>
       </div>
     </div>
   );
