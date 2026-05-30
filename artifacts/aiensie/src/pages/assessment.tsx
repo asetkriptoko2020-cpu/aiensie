@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Link } from "wouter";
+import Papa from "papaparse";
 import {
   Upload,
   FileText,
@@ -12,131 +13,187 @@ import {
   Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { detectAndParse, generateReport } from "@workspace/aiensie-engine";
+import type { AiensieReport } from "@workspace/aiensie-engine";
+import { ScoreReport } from "@/components/report/ScoreReport";
 
-type ProcessingStep = {
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+type StepStatus = "pending" | "processing" | "complete";
+
+interface ProcessingStep {
   id: number;
   title: string;
   description: string;
-  status: "pending" | "processing" | "complete";
-};
+  status: StepStatus;
+}
 
-const initialSteps: ProcessingStep[] = [
-  {
-    id: 1,
-    title: "Reading trade history",
-    description: "Parsing and validating your trading data",
-    status: "pending",
-  },
-  {
-    id: 2,
-    title: "Calculating risk metrics",
-    description: "Analyzing position sizing and exposure patterns",
-    status: "pending",
-  },
-  {
-    id: 3,
-    title: "Detecting behavioral patterns",
-    description: "Identifying trading psychology indicators",
-    status: "pending",
-  },
-  {
-    id: 4,
-    title: "Generating Aiensie Score",
-    description: "Computing your comprehensive assessment",
-    status: "pending",
-  },
+type Phase =
+  | { name: "upload" }
+  | { name: "processing" }
+  | { name: "complete"; report: AiensieReport; exchange: string; tradeCount: number }
+  | { name: "error"; message: string };
+
+// ── Constants ──────────────────────────────────────────────────────────────────
+
+const INITIAL_STEPS: ProcessingStep[] = [
+  { id: 1, title: "Reading trade history",        description: "Parsing and validating your trading data",         status: "pending" },
+  { id: 2, title: "Detecting exchange format",     description: "Identifying CSV structure and data source",         status: "pending" },
+  { id: 3, title: "Normalizing trades",           description: "Standardizing records for cross-asset analysis",    status: "pending" },
+  { id: 4, title: "Calculating risk metrics",     description: "Analyzing position sizing and exposure patterns",   status: "pending" },
+  { id: 5, title: "Generating Aiensie Score",     description: "Computing your comprehensive behavioral assessment",status: "pending" },
 ];
 
-const marketGroups = [
-  {
-    label: "CEX",
-    platforms: ["Binance", "OKX", "Bybit", "Coinbase", "KuCoin"],
-  },
-  {
-    label: "DEX / Perpetuals",
-    platforms: ["Hyperliquid", "dYdX", "GMX", "Uniswap", "Jupiter"],
-  },
-  {
-    label: "Traditional Markets",
-    platforms: ["Stocks", "Forex", "Options", "ETFs", "Futures"],
-  },
+const MARKET_GROUPS = [
+  { label: "CEX",                  platforms: ["Binance", "OKX", "Bybit", "Coinbase", "KuCoin"] },
+  { label: "DEX / Perpetuals",     platforms: ["Hyperliquid", "dYdX", "GMX", "Uniswap", "Jupiter"] },
+  { label: "Traditional Markets",  platforms: ["Stocks", "Forex", "Options", "ETFs", "Futures"] },
 ];
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function readFileText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = (e) => resolve(e.target?.result as string ?? "");
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsText(file);
+  });
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+// ── Component ──────────────────────────────────────────────────────────────────
 
 export default function AssessmentPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>(initialSteps);
-  const [error, setError] = useState<string | null>(null);
+  const [file, setFile]       = useState<File | null>(null);
+  const [isDragging, setDragging] = useState(false);
+  const [phase, setPhase]     = useState<Phase>({ name: "upload" });
+  const [steps, setSteps]     = useState<ProcessingStep[]>(INITIAL_STEPS);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
+  // ── File handling ──────────────────────────────────────────────────────────
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    setError(null);
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      if (droppedFile.type === "text/csv" || droppedFile.name.endsWith(".csv")) {
-        setFile(droppedFile);
-      } else {
-        setError("Please upload a CSV file");
-      }
+  const acceptFile = useCallback((f: File) => {
+    if (f.type === "text/csv" || f.name.endsWith(".csv")) {
+      setFile(f);
+      setUploadError(null);
+    } else {
+      setUploadError("Please upload a CSV file");
     }
   }, []);
 
+  const handleDragOver  = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragging(true);  }, []);
+  const handleDragLeave = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragging(false); }, []);
+  const handleDrop      = useCallback((e: React.DragEvent) => {
+    e.preventDefault(); setDragging(false);
+    const f = e.dataTransfer.files[0];
+    if (f) acceptFile(f);
+  }, [acceptFile]);
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setError(null);
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.type === "text/csv" || selectedFile.name.endsWith(".csv")) {
-        setFile(selectedFile);
-      } else {
-        setError("Please upload a CSV file");
-      }
-    }
-  }, []);
+    const f = e.target.files?.[0];
+    if (f) acceptFile(f);
+  }, [acceptFile]);
 
-  const simulateProcessing = async () => {
-    setIsProcessing(true);
-    setError(null);
-    for (let i = 0; i < initialSteps.length; i++) {
-      setProcessingSteps((prev) =>
-        prev.map((step, index) =>
-          index === i ? { ...step, status: "processing" } : step
-        )
+  // ── Processing ─────────────────────────────────────────────────────────────
+
+  const setStepStatus = (index: number, status: StepStatus) =>
+    setSteps((prev) => prev.map((s, i) => i === index ? { ...s, status } : s));
+
+  const processFile = async (csvFile: File) => {
+    setPhase({ name: "processing" });
+    setSteps(INITIAL_STEPS);
+
+    try {
+      // ── Step 1: Read file ──
+      setStepStatus(0, "processing");
+      const [text] = await Promise.all([readFileText(csvFile), delay(500)]);
+      setStepStatus(0, "complete");
+
+      // ── Step 2: Detect exchange ──
+      setStepStatus(1, "processing");
+      const parseResult = await new Promise<ReturnType<typeof detectAndParse>>(
+        (resolve, reject) => {
+          Papa.parse<Record<string, string>>(text, {
+            header:          true,
+            skipEmptyLines:  true,
+            complete: (results) => {
+              try {
+                resolve(detectAndParse(results.data));
+              } catch (e) {
+                reject(e);
+              }
+            },
+            error: reject,
+          });
+        }
       );
-      await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 1000));
-      setProcessingSteps((prev) =>
-        prev.map((step, index) =>
-          index === i ? { ...step, status: "complete" } : step
-        )
-      );
+      await delay(350);
+      setStepStatus(1, "complete");
+
+      if (parseResult.exchange === "unknown") {
+        setPhase({
+          name:    "error",
+          message: "Unsupported CSV format. We currently support Binance, Bybit, OKX, and Hyperliquid exports. More integrations coming soon.",
+        });
+        return;
+      }
+
+      if (parseResult.trades.length < 5) {
+        setPhase({
+          name:    "error",
+          message: `Only ${parseResult.trades.length} completed trade${parseResult.trades.length === 1 ? "" : "s"} found in your ${parseResult.exchangeLabel} export. Please ensure you export your full closed trade history.`,
+        });
+        return;
+      }
+
+      // ── Step 3: Normalize ──
+      setStepStatus(2, "processing");
+      await delay(600);
+      setStepStatus(2, "complete");
+
+      // ── Step 4: Risk metrics ──
+      setStepStatus(3, "processing");
+      await delay(700);
+      setStepStatus(3, "complete");
+
+      // ── Step 5: Score ──
+      setStepStatus(4, "processing");
+      const report = generateReport(parseResult.trades);
+      await delay(800);
+      setStepStatus(4, "complete");
+
+      // Small pause so user sees all steps complete before transitioning
+      await delay(600);
+      setPhase({
+        name:       "complete",
+        report,
+        exchange:   parseResult.exchangeLabel,
+        tradeCount: parseResult.tradeCount,
+      });
+    } catch (err) {
+      setPhase({
+        name:    "error",
+        message: "Failed to process your CSV. Please check the file and try again.",
+      });
     }
   };
 
   const handleStartAssessment = () => {
-    if (!file) {
-      setError("Please upload your trading history CSV to continue");
-      return;
-    }
-    simulateProcessing();
+    if (!file) { setUploadError("Please upload your trading history CSV to continue"); return; }
+    processFile(file);
   };
 
   const resetUpload = () => {
     setFile(null);
-    setIsProcessing(false);
-    setProcessingSteps(initialSteps);
-    setError(null);
+    setPhase({ name: "upload" });
+    setSteps(INITIAL_STEPS);
+    setUploadError(null);
   };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,14 +208,10 @@ export default function AssessmentPage() {
                 className="h-8 w-8 object-contain rounded-sm"
                 style={{ filter: "brightness(1.05)" }}
               />
-              <span className="text-xl font-bold tracking-tight text-foreground">
-                Aiensie
-              </span>
+              <span className="text-xl font-bold tracking-tight text-foreground">Aiensie</span>
             </Link>
             <Link href="/">
-              <Button variant="ghost" size="sm">
-                ← Back to Home
-              </Button>
+              <Button variant="ghost" size="sm">← Back to Home</Button>
             </Link>
           </div>
         </div>
@@ -170,27 +223,26 @@ export default function AssessmentPage() {
           {/* Page header */}
           <div className="text-center mb-12">
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Start Your Assessment
+              {phase.name === "complete" ? "Your Assessment Results" : "Start Your Assessment"}
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              Upload your trading history to receive your personalized Aiensie
-              Score and behavioral insights.
+              {phase.name === "complete"
+                ? "Here is your personalized Aiensie Score and behavioral breakdown."
+                : "Upload your trading history to receive your personalized Aiensie Score and behavioral insights."}
             </p>
           </div>
 
-          {!isProcessing ? (
+          {/* ── UPLOAD phase ── */}
+          {phase.name === "upload" && (
             <>
-              {/* ── Supported Markets ── */}
+              {/* Supported platforms */}
               <div className="mb-8">
-                <h2 className="text-sm font-medium text-foreground mb-1">
-                  Supported Markets &amp; Platforms
-                </h2>
+                <h2 className="text-sm font-medium text-foreground mb-1">Supported Markets &amp; Platforms</h2>
                 <p className="text-xs text-muted-foreground mb-4">
                   Export your trade history as CSV from any of the platforms below.
                 </p>
-
                 <div className="rounded-2xl border border-border/60 bg-card/40 p-5 space-y-4">
-                  {marketGroups.map((group) => (
+                  {MARKET_GROUPS.map((group) => (
                     <div key={group.label}>
                       <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">
                         {group.label}
@@ -207,18 +259,15 @@ export default function AssessmentPage() {
                       </div>
                     </div>
                   ))}
-
                   <p className="text-[11px] text-muted-foreground pt-1 border-t border-border/40">
                     More integrations coming soon.
                   </p>
                 </div>
               </div>
 
-              {/* ── Upload zone ── */}
+              {/* Upload zone */}
               <div className="mb-6">
-                <h2 className="text-sm font-medium text-foreground mb-4">
-                  Upload your trading history
-                </h2>
+                <h2 className="text-sm font-medium text-foreground mb-4">Upload your trading history</h2>
                 <div
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -238,38 +287,24 @@ export default function AssessmentPage() {
                       </div>
                       <div>
                         <p className="text-foreground font-medium">{file.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </p>
+                        <p className="text-sm text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
                       </div>
                       <Button
-                        variant="ghost"
-                        size="sm"
+                        variant="ghost" size="sm"
                         onClick={() => setFile(null)}
                         className="text-muted-foreground hover:text-foreground"
                       >
-                        <X className="w-4 h-4 mr-2" />
-                        Remove file
+                        <X className="w-4 h-4 mr-2" />Remove file
                       </Button>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-4">
-                      <div
-                        className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${
-                          isDragging ? "bg-primary/20" : "bg-secondary"
-                        }`}
-                      >
-                        <Upload
-                          className={`w-8 h-8 ${isDragging ? "text-primary" : "text-muted-foreground"}`}
-                        />
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${isDragging ? "bg-primary/20" : "bg-secondary"}`}>
+                        <Upload className={`w-8 h-8 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
                       </div>
                       <div>
-                        <p className="text-foreground font-medium mb-1">
-                          Drag and drop your CSV file here
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          or click to browse files
-                        </p>
+                        <p className="text-foreground font-medium mb-1">Drag and drop your CSV file here</p>
+                        <p className="text-sm text-muted-foreground">or click to browse files</p>
                       </div>
                       <input
                         type="file"
@@ -282,25 +317,25 @@ export default function AssessmentPage() {
                 </div>
               </div>
 
-              {/* ── Privacy note ── */}
+              {/* Privacy note */}
               <div className="mb-6 p-4 rounded-xl bg-card border border-border flex items-start gap-3">
                 <Lock className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-muted-foreground">
                   <span className="text-foreground font-medium">Privacy first.</span>{" "}
                   We never ask for your API key, private key, or brokerage login.
-                  Your CSV is processed locally for behavioral analysis only.
+                  Your CSV is processed locally in your browser — nothing is uploaded to a server.
                 </p>
               </div>
 
-              {/* ── Error ── */}
-              {error && (
+              {/* Upload error */}
+              {uploadError && (
                 <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3">
                   <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0" />
-                  <p className="text-sm text-destructive">{error}</p>
+                  <p className="text-sm text-destructive">{uploadError}</p>
                 </div>
               )}
 
-              {/* ── CTA ── */}
+              {/* CTA */}
               <Button
                 onClick={handleStartAssessment}
                 disabled={!file}
@@ -310,7 +345,7 @@ export default function AssessmentPage() {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
 
-              {/* ── Export instructions ── */}
+              {/* Export instructions */}
               <div className="mt-10 text-center">
                 <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">
                   How to export your trading history
@@ -322,30 +357,27 @@ export default function AssessmentPage() {
                     "OKX: Assets › Order Center › Export",
                     "Hyperliquid: Portfolio › Export CSV",
                   ].map((tip) => (
-                    <span
-                      key={tip}
-                      className="px-3 py-1.5 rounded-full bg-card border border-border/60"
-                    >
+                    <span key={tip} className="px-3 py-1.5 rounded-full bg-card border border-border/60">
                       {tip}
                     </span>
                   ))}
                 </div>
               </div>
             </>
-          ) : (
-            /* ── Processing state ── */
+          )}
+
+          {/* ── PROCESSING phase ── */}
+          {phase.name === "processing" && (
             <div className="glass rounded-2xl p-8">
               <div className="text-center mb-8">
                 <h2 className="text-xl font-semibold text-foreground mb-2">
                   Analyzing your trading behavior
                 </h2>
-                <p className="text-muted-foreground">
-                  This usually takes about 30 seconds
-                </p>
+                <p className="text-muted-foreground">Processing your data locally — no uploads required</p>
               </div>
 
               <div className="space-y-4">
-                {processingSteps.map((step, index) => (
+                {steps.map((step, index) => (
                   <div
                     key={step.id}
                     className={`flex items-start gap-4 p-4 rounded-xl transition-all ${
@@ -375,31 +407,41 @@ export default function AssessmentPage() {
                   </div>
                 ))}
               </div>
-
-              {processingSteps.every((s) => s.status === "complete") && (
-                <div className="mt-8 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/20 mb-4">
-                    <CheckCircle2 className="w-8 h-8 text-success" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
-                    Assessment Complete
-                  </h3>
-                  <p className="text-muted-foreground mb-6">
-                    Your Aiensie Score has been calculated
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Button className="glow-primary">
-                      View Your Results
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                    <Button variant="outline" onClick={resetUpload}>
-                      Start New Assessment
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
+
+          {/* ── COMPLETE phase ── */}
+          {phase.name === "complete" && (
+            <ScoreReport
+              report={phase.report}
+              exchange={phase.exchange}
+              tradeCount={phase.tradeCount}
+              onReset={resetUpload}
+            />
+          )}
+
+          {/* ── ERROR phase ── */}
+          {phase.name === "error" && (
+            <div className="glass rounded-2xl p-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-destructive/15 mb-5">
+                <AlertCircle className="w-8 h-8 text-destructive" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Unable to Process File</h3>
+              <p className="text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
+                {phase.message}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={resetUpload} className="glow-primary">
+                  Try Another File
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/">Return Home</Link>
+                </Button>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
     </div>

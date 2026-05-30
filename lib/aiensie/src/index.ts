@@ -1,3 +1,4 @@
+// ── Core types ────────────────────────────────────────────────────────────────
 export type {
   Trade,
   TradeSide,
@@ -10,8 +11,22 @@ export type {
   ScoreLabel,
 } from "./types.js";
 
-export { computeMetrics }        from "./metrics.js";
-export { detectPatterns }        from "./patterns.js";
-export { computeScores, computeAiensieScore } from "./scoring.js";
-export { generateReport }        from "./report.js";
-export { SAMPLE_TRADES }         from "./sampleTrades.js";
+// ── Engine pipeline ───────────────────────────────────────────────────────────
+export { computeMetrics }                        from "./metrics.js";
+export { detectPatterns }                        from "./patterns.js";
+export { computeScores, computeAiensieScore }    from "./scoring.js";
+export { generateReport }                        from "./report.js";
+
+// ── Sample data ───────────────────────────────────────────────────────────────
+export { SAMPLE_TRADES }                         from "./sampleTrades.js";
+
+// ── CSV parsers ───────────────────────────────────────────────────────────────
+export type { ParseResult, ExchangeId, CsvRow }  from "./parsers/index.js";
+export {
+  detectExchange,
+  detectAndParse,
+  parseBinance,
+  parseBybit,
+  parseOKX,
+  parseHyperliquid,
+}                                                from "./parsers/index.js";
