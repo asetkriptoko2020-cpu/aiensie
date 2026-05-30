@@ -1,21 +1,172 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Sparkles, Shield, Target, Activity, Brain } from "lucide-react";
+import { ArrowRight, Sparkles, Shield, Target, Activity, Brain, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlobeBackground } from "./globe-background";
 import { motion } from "framer-motion";
 
 // ── Score ring constants ──────────────────────────────────────────────────────
-const RADIUS = 88;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS; // ≈ 552.92
-const SCORE = 75;
-const ARC_LENGTH = (SCORE / 100) * CIRCUMFERENCE;   // ≈ 414.69
-const TARGET_OFFSET = CIRCUMFERENCE - ARC_LENGTH;   // ≈ 138.23
+const RADIUS       = 88;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;   // ≈ 552.92
+const SCORE        = 75;
+const ARC_LENGTH   = (SCORE / 100) * CIRCUMFERENCE;
+const TARGET_OFFSET = CIRCUMFERENCE - ARC_LENGTH;
 
-// Ring animation timing
 const RING_DURATION = 1.8;
-const RING_DELAY   = 0.3;
-const RING_EASE: [number, number, number, number] = [0.34, 1.06, 0.64, 1]; // slight overshoot → premium
+const RING_DELAY    = 0.3;
+const RING_EASE: [number, number, number, number] = [0.34, 1.06, 0.64, 1];
 
+// ── Metric card data ──────────────────────────────────────────────────────────
+interface MetricDef {
+  icon: LucideIcon;
+  label: string;
+  value: number;
+  iconBg: string;
+  iconColor: string;
+  glowColor: string;
+  delay: number;          // count-up start delay (s)
+}
+
+const METRICS: MetricDef[] = [
+  {
+    icon: Target,
+    label: "Discipline",
+    value: 82,
+    iconBg: "bg-primary/20",
+    iconColor: "text-primary",
+    glowColor: "oklch(0.7 0.15 250)",
+    delay: 0.6,
+  },
+  {
+    icon: Shield,
+    label: "Risk Control",
+    value: 68,
+    iconBg: "bg-accent/20",
+    iconColor: "text-accent",
+    glowColor: "oklch(0.65 0.2 170)",
+    delay: 0.75,
+  },
+  {
+    icon: Activity,
+    label: "Consistency",
+    value: 78,
+    iconBg: "bg-success/20",
+    iconColor: "text-success",
+    glowColor: "oklch(0.7 0.18 145)",
+    delay: 0.9,
+  },
+  {
+    icon: Brain,
+    label: "Emotional Stability",
+    value: 71,
+    iconBg: "bg-warning/20",
+    iconColor: "text-warning",
+    glowColor: "oklch(0.75 0.12 80)",
+    delay: 1.05,
+  },
+];
+
+// ── MetricCard sub-component ──────────────────────────────────────────────────
+function MetricCard({ icon: Icon, label, value, iconBg, iconColor, glowColor, delay }: MetricDef) {
+  const [display, setDisplay] = useState(0);
+  const [counting, setCounting] = useState(true);
+  const rafRef = useRef<number>(0);
+  const DURATION = 1100; // ms
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      let start: number | null = null;
+
+      const step = (ts: number) => {
+        if (start === null) start = ts;
+        const elapsed = ts - start;
+        const progress = Math.min(elapsed / DURATION, 1);
+        // Cubic ease-out
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setDisplay(Math.round(eased * value));
+        if (progress < 1) {
+          rafRef.current = requestAnimationFrame(step);
+        } else {
+          setCounting(false);
+        }
+      };
+
+      rafRef.current = requestAnimationFrame(step);
+    }, delay * 1000);
+
+    return () => {
+      clearTimeout(timeout);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [value, delay]);
+
+  // CSS text-shadow pulse while counting
+  const numStyle = counting
+    ? {
+        textShadow: `0 0 10px ${glowColor}99, 0 0 20px ${glowColor}44`,
+        transition: "text-shadow 0.3s ease",
+      }
+    : {
+        textShadow: "none",
+        transition: "text-shadow 0.5s ease",
+      };
+
+  return (
+    <motion.div
+      className="relative flex items-center gap-3 p-3 rounded-xl bg-secondary/50 overflow-hidden cursor-default"
+      whileHover={{
+        boxShadow: `0 0 0 1px ${glowColor}55, 0 0 18px ${glowColor}18`,
+      }}
+      transition={{ duration: 0.2 }}
+    >
+      {/* Shimmer sweep during count-up */}
+      {counting && (
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          initial={{ x: "-100%" }}
+          animate={{ x: "180%" }}
+          transition={{
+            duration: DURATION / 1000,
+            delay: 0,
+            ease: "easeInOut",
+          }}
+          style={{
+            background:
+              "linear-gradient(90deg, transparent 0%, oklch(1 0 0 / 0.06) 50%, transparent 100%)",
+            width: "60%",
+          }}
+        />
+      )}
+
+      {/* Icon */}
+      <motion.div
+        className={`p-2 rounded-lg ${iconBg} flex-shrink-0`}
+        whileHover={{ scale: 1.12 }}
+        transition={{ type: "spring", stiffness: 380, damping: 16 }}
+      >
+        <Icon className={`h-4 w-4 ${iconColor}`} />
+      </motion.div>
+
+      {/* Label + number */}
+      <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-sm font-semibold text-foreground leading-snug">
+          <motion.span
+            style={numStyle}
+            whileHover={{ filter: "brightness(1.25)" }}
+            transition={{ duration: 0.15 }}
+          >
+            {display}
+          </motion.span>
+          <span className="text-xs font-normal text-muted-foreground">/100</span>
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
 export function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -46,7 +197,6 @@ export function Hero() {
                 >
                   Trading Mind
                 </span>
-                {/* Apple-style barely-visible soft sheen */}
                 <span aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none rounded-sm">
                   <span
                     className="animate-heading-sheen absolute inset-y-0 w-[28%]"
@@ -105,28 +255,19 @@ export function Hero() {
                     style={{ overflow: "visible" }}
                   >
                     <defs>
-                      {/* Progress arc gradient */}
                       <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%"   stopColor="oklch(0.7 0.15 250)" />
                         <stop offset="100%" stopColor="oklch(0.65 0.2 170)" />
                       </linearGradient>
-
-                      {/* Glow filter for the blur trail */}
                       <filter id="arcGlow" x="-30%" y="-30%" width="160%" height="160%">
                         <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
                       </filter>
                     </defs>
 
-                    {/* Track ring */}
-                    <circle
-                      cx="96" cy="96" r={RADIUS}
-                      stroke="currentColor"
-                      strokeWidth="6"
-                      fill="none"
-                      className="text-secondary"
-                    />
+                    {/* Track */}
+                    <circle cx="96" cy="96" r={RADIUS} stroke="currentColor" strokeWidth="6" fill="none" className="text-secondary" />
 
-                    {/* ── Glow trail — blurred duplicate arc, slightly wider ── */}
+                    {/* Glow trail */}
                     <motion.circle
                       cx="96" cy="96" r={RADIUS}
                       stroke="url(#heroGradient)"
@@ -138,14 +279,10 @@ export function Hero() {
                       style={{ opacity: 0.45 }}
                       initial={{ strokeDashoffset: CIRCUMFERENCE }}
                       animate={{ strokeDashoffset: TARGET_OFFSET }}
-                      transition={{
-                        duration: RING_DURATION,
-                        delay: RING_DELAY,
-                        ease: RING_EASE,
-                      }}
+                      transition={{ duration: RING_DURATION, delay: RING_DELAY, ease: RING_EASE }}
                     />
 
-                    {/* ── Main progress arc ── */}
+                    {/* Main arc */}
                     <motion.circle
                       cx="96" cy="96" r={RADIUS}
                       stroke="url(#heroGradient)"
@@ -155,49 +292,32 @@ export function Hero() {
                       strokeDasharray={CIRCUMFERENCE}
                       initial={{ strokeDashoffset: CIRCUMFERENCE }}
                       animate={{ strokeDashoffset: TARGET_OFFSET }}
-                      transition={{
-                        duration: RING_DURATION,
-                        delay: RING_DELAY,
-                        ease: RING_EASE,
-                      }}
+                      transition={{ duration: RING_DURATION, delay: RING_DELAY, ease: RING_EASE }}
                     />
 
-                    {/* ── Bright tip dot — follows the leading edge ── */}
-                    {/*
-                      Tip dot: placed at the "start" position (top of circle, after -rotate-90).
-                      We rotate it around the center by the same arc fraction.
-                      In SVG coordinates (before CSS -rotate-90 wrapper):
-                        start pos = top:  cx=96, cy = 96 - r = 96 - 88 = 8
-                      CSS rotate on the SVG flips so we just rotate the dot around center.
-                    */}
+                    {/* Tip dot */}
                     <motion.circle
                       cx={96}
-                      cy={96 - RADIUS}   // top of the ring
+                      cy={96 - RADIUS}
                       r={4.5}
                       fill="oklch(0.92 0.1 210)"
                       style={{
                         transformOrigin: "96px 96px",
-                        filter: "drop-shadow(0 0 6px oklch(0.7 0.15 250)) drop-shadow(0 0 12px oklch(0.65 0.2 170 / 0.8))",
+                        filter:
+                          "drop-shadow(0 0 6px oklch(0.7 0.15 250)) drop-shadow(0 0 12px oklch(0.65 0.2 170 / 0.8))",
                       }}
                       initial={{ rotate: 0, opacity: 0 }}
-                      animate={{
-                        rotate: [0, (SCORE / 100) * 360],
-                        opacity: [0, 1, 1, 0],
-                      }}
+                      animate={{ rotate: [0, (SCORE / 100) * 360], opacity: [0, 1, 1, 0] }}
                       transition={{
                         duration: RING_DURATION,
                         delay: RING_DELAY,
                         ease: RING_EASE,
-                        opacity: {
-                          times: [0, 0.05, 0.85, 1],
-                          duration: RING_DURATION,
-                          delay: RING_DELAY,
-                        },
+                        opacity: { times: [0, 0.05, 0.85, 1], duration: RING_DURATION, delay: RING_DELAY },
                       }}
                     />
                   </svg>
 
-                  {/* Score content — fades in after ring settles */}
+                  {/* Score text */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <motion.span
                       className="text-5xl font-bold text-foreground leading-none"
@@ -227,47 +347,11 @@ export function Hero() {
                 </div>
               </div>
 
-              {/* ── Metric cards ── */}
+              {/* ── Metric cards (animated count-up) ── */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 transition-colors duration-200 hover:bg-secondary/70">
-                  <div className="p-2 rounded-lg bg-primary/20">
-                    <Target className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Discipline</p>
-                    <p className="text-sm font-semibold text-foreground">82/100</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 transition-colors duration-200 hover:bg-secondary/70">
-                  <div className="p-2 rounded-lg bg-accent/20">
-                    <Shield className="h-4 w-4 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Risk Control</p>
-                    <p className="text-sm font-semibold text-foreground">68/100</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 transition-colors duration-200 hover:bg-secondary/70">
-                  <div className="p-2 rounded-lg bg-success/20">
-                    <Activity className="h-4 w-4 text-success" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Consistency</p>
-                    <p className="text-sm font-semibold text-foreground">78/100</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 transition-colors duration-200 hover:bg-secondary/70">
-                  <div className="p-2 rounded-lg bg-warning/20">
-                    <Brain className="h-4 w-4 text-warning" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Emotional Stability</p>
-                    <p className="text-sm font-semibold text-foreground">71/100</p>
-                  </div>
-                </div>
+                {METRICS.map((m) => (
+                  <MetricCard key={m.label} {...m} />
+                ))}
               </div>
 
               <div className="mt-6 p-4 rounded-xl bg-primary/10 border border-primary/20">
