@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AiensieReport, AiensieScores, DetectedPattern } from "@workspace/aiensie-engine";
+import { generateNarrative } from "@workspace/aiensie-engine";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -209,6 +210,60 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
   );
 }
 
+// ── Behavioral Intelligence Summary ──────────────────────────────────────────
+
+function BehavioralIntelligenceSummary({ report }: { report: AiensieReport }) {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const { paragraphs } = generateNarrative(report);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      { threshold: 0.08 },
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="glass rounded-2xl p-6 overflow-hidden">
+      <SectionHeader label="Behavioral Intelligence Summary" icon={Brain} />
+
+      <div className="space-y-4">
+        {paragraphs.map((para, i) => (
+          <p
+            key={i}
+            className="text-sm text-foreground/75 leading-[1.85] tracking-[0.01em]"
+            style={{
+              opacity:    visible ? 1 : 0,
+              transform:  visible ? "translateY(0)" : "translateY(10px)",
+              transition: `opacity 0.55s ease ${i * 160}ms, transform 0.55s ease ${i * 160}ms`,
+            }}
+          >
+            {para}
+          </p>
+        ))}
+      </div>
+
+      {/* Subtle footer rule */}
+      <div
+        className="mt-5 pt-4 border-t border-border/30 flex items-center gap-2"
+        style={{
+          opacity:    visible ? 1 : 0,
+          transition: `opacity 0.5s ease ${paragraphs.length * 160 + 100}ms`,
+        }}
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-primary/50" />
+        <p className="text-[11px] text-muted-foreground/50 tracking-wide">
+          Generated from {report.metrics.totalTrades} trades · Aiensie Behavioral Engine
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
 function StatCard({ label, value }: { label: string; value: string }) {
@@ -333,7 +388,10 @@ export function ScoreReport({ report, exchange, tradeCount, onReset }: ScoreRepo
         </p>
       </div>
 
-      {/* ── 3. Detected Behavioral Patterns ── */}
+      {/* ── 3. Behavioral Intelligence Summary ── */}
+      <BehavioralIntelligenceSummary report={report} />
+
+      {/* ── 4. Detected Behavioral Patterns ── */}
       <div className="glass rounded-2xl p-6">
         <SectionHeader label="Detected Behavioral Patterns" icon={AlertTriangle} />
 

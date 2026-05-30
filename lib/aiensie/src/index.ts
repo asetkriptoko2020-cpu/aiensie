@@ -17,6 +17,10 @@ export { detectPatterns }                        from "./patterns.js";
 export { computeScores, computeAiensieScore }    from "./scoring.js";
 export { generateReport }                        from "./report.js";
 
+// ── Narrative engine ──────────────────────────────────────────────────────────
+export type { NarrativeResult }                  from "./narrative/generateNarrative.js";
+export { generateNarrative }                     from "./narrative/generateNarrative.js";
+
 // ── Sample data ───────────────────────────────────────────────────────────────
 export { SAMPLE_TRADES }                         from "./sampleTrades.js";
 
