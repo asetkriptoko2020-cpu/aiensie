@@ -67,6 +67,10 @@ export default defineConfig({
     fs: {
       strict: false,
     },
+    watch: {
+      followSymlinks: false,
+      ignored: ["**/node_modules/**", "**/artifacts/aiensie/artifacts/**"],
+    },
   },
   preview: {
     port,
