@@ -75,6 +75,9 @@ export default function AssessmentPage() {
   const [steps, setSteps]         = useState<ProcessingStep[]>(INITIAL_STEPS);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  const fromDashboard = new URLSearchParams(window.location.search).get("from") === "dashboard";
+  const exitHref      = fromDashboard ? "/dashboard" : "/";
+
   // ── File handling ──────────────────────────────────────────────────────────
 
   const acceptFile = useCallback((f: File) => {
@@ -282,7 +285,7 @@ export default function AssessmentPage() {
       <header className="fixed top-0 left-0 right-0 z-50 glass">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5">
+            <Link href={exitHref} className="flex items-center gap-2.5">
               <img
                 src="/aiensie-logo.png"
                 alt="Aiensie"
@@ -291,8 +294,10 @@ export default function AssessmentPage() {
               />
               <span className="text-xl font-bold tracking-tight text-foreground">Aiensie</span>
             </Link>
-            <Link href="/">
-              <Button variant="ghost" size="sm">← Back to Home</Button>
+            <Link href={exitHref}>
+              <Button variant="ghost" size="sm">
+                {fromDashboard ? "← Dashboard" : "← Back to Home"}
+              </Button>
             </Link>
           </div>
         </div>
@@ -541,7 +546,7 @@ export default function AssessmentPage() {
                   Use Sample Data Instead
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/">Return Home</Link>
+                  <Link href={exitHref}>{fromDashboard ? "Back to Dashboard" : "Return Home"}</Link>
                 </Button>
               </div>
             </div>

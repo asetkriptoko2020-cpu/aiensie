@@ -98,7 +98,7 @@ export default function DashboardOverview() {
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
           </div>
-          <Link href="/assessment">
+          <Link href="/assessment?from=dashboard">
             <Button size="sm" className="gap-2 rounded-xl">
               <Upload className="w-4 h-4" /> New Assessment
             </Button>

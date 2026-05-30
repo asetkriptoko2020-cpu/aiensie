@@ -41,7 +41,7 @@ export default function ReportsPage() {
             <h1 className="text-xl font-bold text-foreground">Assessment Reports</h1>
             <p className="text-sm text-muted-foreground mt-0.5">{filtered.length} report{filtered.length !== 1 ? "s" : ""} · {market === "All" ? "all markets" : market}</p>
           </div>
-          <Link href="/assessment">
+          <Link href="/assessment?from=dashboard">
             <Button size="sm" className="gap-2 rounded-xl">
               <Upload className="w-4 h-4" /> New Assessment
             </Button>

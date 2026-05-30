@@ -152,7 +152,7 @@ export function BehaviorEvolutionCard({ currentReport }: Props) {
           <p className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
             Upload your next assessment and Aiensie will track how your behavioral dimensions evolve over time.
           </p>
-          <Link href="/assessment">
+          <Link href="/assessment?from=dashboard">
             <button className="mt-4 text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
               Start next assessment →
             </button>
