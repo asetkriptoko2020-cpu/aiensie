@@ -19,6 +19,23 @@
   </head>
   <body>
     <div id="root"></div>
+    <div id="fallback" style="position:fixed;top:0;left:0;width:100%;padding:16px;background:#1a1a2e;color:#a0c4ff;font-family:monospace;font-size:14px;z-index:9999;pointer-events:none;">
+      Aiensie app loaded
+    </div>
+    <script type="module">
+      // Hide fallback once React mounts
+      document.addEventListener('DOMContentLoaded', function() {
+        requestAnimationFrame(function() {
+          setTimeout(function() {
+            var root = document.getElementById('root');
+            var fallback = document.getElementById('fallback');
+            if (fallback && root && root.children.length > 0) {
+              fallback.style.display = 'none';
+            }
+          }, 2000);
+        });
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
