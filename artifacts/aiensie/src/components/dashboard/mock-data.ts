@@ -8,10 +8,20 @@ export interface MockUser {
   avatar: string;
 }
 
+export const EXCHANGE_ASSET_CLASS: Record<string, string> = {
+  Binance:     "Crypto",
+  Bybit:       "Crypto",
+  Hyperliquid: "Crypto",
+  OKX:         "Crypto",
+  Stockbit:    "Stocks",
+  MetaTrader:  "Forex",
+};
+
 export interface MockReport {
   id: string;
   date: string;
   exchange: string;
+  assetClass: string;
   tradeCount: number;
   aiensieScore: number;
   label: string;
@@ -48,6 +58,7 @@ export const MOCK_REPORTS: MockReport[] = [
     id: "r1",
     date: "2024-01-15",
     exchange: "Binance",
+    assetClass: "Crypto",
     tradeCount: 68,
     aiensieScore: 52,
     label: "Fair",
@@ -75,6 +86,7 @@ export const MOCK_REPORTS: MockReport[] = [
     id: "r2",
     date: "2024-02-10",
     exchange: "Binance",
+    assetClass: "Crypto",
     tradeCount: 72,
     aiensieScore: 58,
     label: "Good",
@@ -98,6 +110,7 @@ export const MOCK_REPORTS: MockReport[] = [
     id: "r3",
     date: "2024-03-08",
     exchange: "Bybit",
+    assetClass: "Crypto",
     tradeCount: 80,
     aiensieScore: 63,
     label: "Good",
@@ -121,6 +134,7 @@ export const MOCK_REPORTS: MockReport[] = [
     id: "r4",
     date: "2024-04-05",
     exchange: "Bybit",
+    assetClass: "Crypto",
     tradeCount: 75,
     aiensieScore: 68,
     label: "Good",
@@ -144,6 +158,7 @@ export const MOCK_REPORTS: MockReport[] = [
     id: "r5",
     date: "2024-05-12",
     exchange: "Binance",
+    assetClass: "Crypto",
     tradeCount: 80,
     aiensieScore: 74,
     label: "Strong",
@@ -167,6 +182,7 @@ export const MOCK_REPORTS: MockReport[] = [
     id: "r6",
     date: "2024-05-28",
     exchange: "Binance",
+    assetClass: "Crypto",
     tradeCount: 80,
     aiensieScore: 78,
     label: "Strong",

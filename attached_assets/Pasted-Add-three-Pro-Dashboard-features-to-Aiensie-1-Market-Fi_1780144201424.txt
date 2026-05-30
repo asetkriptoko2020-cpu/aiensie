@@ -1,0 +1,109 @@
+Add three Pro Dashboard features to Aiensie:
+
+1. Market Filters
+2. PDF Export
+3. Smart Alerts
+
+Do NOT redesign the existing UI.
+Only extend the current Pro Dashboard functionality and UX.
+
+--------------------------------------------------
+1. MARKET FILTERS
+--------------------------------------------------
+
+Add market filters across:
+- Dashboard Overview
+- Reports
+- Behavior Trends
+- Markets page
+
+Filters:
+- All
+- Crypto
+- Stocks
+- Forex
+- ETF
+- Options
+
+Behavior:
+- Selecting a market updates the displayed reports, scores, trends, and insights.
+- Use mock data for now.
+- Keep filter pills premium, minimal, and dark fintech style.
+
+Add asset class labels to report cards:
+Example:
+Binance • Crypto
+Bybit • Crypto
+Stockbit • Stocks
+MetaTrader • Forex
+
+--------------------------------------------------
+2. PDF EXPORT
+--------------------------------------------------
+
+Add Export PDF buttons to:
+- Full Report page
+- Report History cards
+- Dashboard latest report card
+
+Button text:
+Export PDF
+
+Behavior for now:
+- Generate a clean printable report view or browser print modal.
+- Use window.print() for MVP.
+- Later this can connect to a real PDF generator.
+
+PDF/Print content should include:
+- Aiensie Score
+- Trader Persona
+- Core metrics
+- Trading Scores
+- Behavioral Patterns
+- Strengths
+- Weaknesses
+- Action Plan
+- Disclaimer
+
+Keep the PDF layout clean and professional.
+
+--------------------------------------------------
+3. SMART ALERTS
+--------------------------------------------------
+
+Add Smart Alerts section to Dashboard Overview.
+
+Examples:
+- Revenge trading increased this week.
+- Position sizing improved across the last 3 assessments.
+- Emotional control dropped during high-volatility sessions.
+- Crypto behavior is more impulsive than stock behavior.
+- Risk consistency improved this month.
+
+Alert types:
+- Improvement
+- Warning
+- Critical
+- Insight
+
+Use color-coded but subtle badges:
+- Improvement = green
+- Warning = yellow
+- Critical = red
+- Insight = blue
+
+Keep the tone:
+- human
+- concise
+- premium
+- psychologically aware
+
+--------------------------------------------------
+IMPORTANT
+--------------------------------------------------
+
+- Use mock data only for now.
+- Do not add backend/database yet.
+- Do not change the landing page design.
+- Do not break the upload/report flow.
+- Keep everything modular and ready for real data later.

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
-import { ArrowLeft, CheckCircle2, XCircle, AlertTriangle, ChevronRight, BarChart3, Brain, Zap } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, AlertTriangle, ChevronRight, BarChart3, Brain, Zap, Printer } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { MOCK_REPORTS } from "@/components/dashboard/mock-data";
 import { Button } from "@/components/ui/button";
@@ -79,17 +79,27 @@ export default function ReportDetailPage() {
     <DashboardLayout>
       <div className="p-6 max-w-4xl space-y-5">
 
-        {/* ── Back + meta ── */}
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/reports">
-            <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="w-3.5 h-3.5" /> Reports
-            </button>
-          </Link>
-          <span className="text-muted-foreground/40">/</span>
-          <span className="text-xs text-muted-foreground">
-            {new Date(report.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-          </span>
+        {/* ── Back + meta + Export ── */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/reports">
+              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="w-3.5 h-3.5" /> Reports
+              </button>
+            </Link>
+            <span className="text-muted-foreground/40">/</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date(report.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 rounded-xl text-xs h-8 flex-shrink-0"
+            onClick={() => window.print()}
+          >
+            <Printer className="w-3.5 h-3.5" /> Export PDF
+          </Button>
         </div>
 
         {/* ── Score header ── */}
@@ -116,7 +126,7 @@ export default function ReportDetailPage() {
                   {report.label}
                 </span>
                 <span className="text-xs px-2.5 py-1 rounded-full bg-card border border-border/60 text-muted-foreground">
-                  {report.exchange}
+                  {report.exchange} · {report.assetClass}
                 </span>
                 <span className="text-xs px-2.5 py-1 rounded-full bg-card border border-border/60 text-muted-foreground">
                   {report.tradeCount} trades
@@ -240,6 +250,12 @@ export default function ReportDetailPage() {
             ))}
           </ol>
         </div>
+
+        {/* ── Disclaimer ── */}
+        <p className="text-[10px] text-muted-foreground/40 text-center leading-relaxed pb-2">
+          Aiensie Score is a behavioral assessment tool and does not constitute financial advice.
+          Past performance is not indicative of future results. For educational purposes only.
+        </p>
       </div>
     </DashboardLayout>
   );
