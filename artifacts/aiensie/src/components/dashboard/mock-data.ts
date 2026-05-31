@@ -43,6 +43,7 @@ export interface MockReport {
   profitFactor: number;
   maxLossStreak: number;
   persona: string;
+  tag?: "duplicate-upload" | "re-uploaded-session" | "updated-report";
 }
 
 export const MOCK_USER: MockUser = {

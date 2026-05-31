@@ -1,11 +1,21 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "wouter";
-import { ArrowLeft, CheckCircle2, XCircle, AlertTriangle, ChevronRight, BarChart3, Brain, Zap, Printer } from "lucide-react";
+import { Link, useParams, useLocation } from "wouter";
+import { ArrowLeft, CheckCircle2, XCircle, AlertTriangle, ChevronRight, BarChart3, Brain, Zap, Printer, Trash2 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { MOCK_REPORTS } from "@/components/dashboard/mock-data";
-import { getSavedReportById, savedReportToMockReport } from "@/lib/report-store";
+import { getSavedReportById, savedReportToMockReport, deleteReport } from "@/lib/report-store";
 import { ScoreReport } from "@/components/report/ScoreReport";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // ── Helpers for mock-only fallback view ───────────────────────────────────────
 
@@ -65,9 +75,12 @@ const SEVERITY_CONFIG = {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ReportDetailPage() {
-  const params = useParams<{ id: string }>();
+  const params      = useParams<{ id: string }>();
+  const [, navigate]         = useLocation();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   const savedLookup = params.id ? getSavedReportById(params.id) : null;
-  const mockReport =
+  const mockReport  =
     savedLookup
       ? savedReportToMockReport(savedLookup)
       : MOCK_REPORTS.find((r) => r.id === params.id);
@@ -85,15 +98,21 @@ export default function ReportDetailPage() {
 
   // ── Pro path: full AiensieReport available ────────────────────────────────
   if (savedLookup) {
-    const date = new Date(savedLookup.date).toLocaleDateString("en-US", {
+    const date = new Date(savedLookup.timestamp).toLocaleDateString("en-US", {
       month: "long", day: "numeric", year: "numeric",
     });
+
+    function handleDelete() {
+      deleteReport(savedLookup!.id);
+      setConfirmDelete(false);
+      navigate("/dashboard/reports");
+    }
 
     return (
       <DashboardLayout>
         <div className="p-6 max-w-4xl">
 
-          {/* Back + PDF export */}
+          {/* Back + actions */}
           <div className="flex items-center justify-between gap-3 mb-5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard/reports">
@@ -104,14 +123,24 @@ export default function ReportDetailPage() {
               <span className="text-muted-foreground/40">/</span>
               <span className="text-xs text-muted-foreground">{date}</span>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 rounded-xl text-xs h-8 flex-shrink-0"
-              onClick={() => window.print()}
-            >
-              <Printer className="w-3.5 h-3.5" /> Export PDF
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 rounded-xl text-xs h-8 flex-shrink-0"
+                onClick={() => window.print()}
+              >
+                <Printer className="w-3.5 h-3.5" /> Export PDF
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 rounded-xl text-xs h-8 flex-shrink-0 text-red-400 hover:text-red-300 hover:bg-red-950/30"
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Delete
+              </Button>
+            </div>
           </div>
 
           {/* Full Pro report */}
@@ -123,6 +152,28 @@ export default function ReportDetailPage() {
             onReset={() => {}}
           />
         </div>
+
+        {/* Delete confirmation */}
+        <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this report?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently remove the report and its behavior snapshot from your history.
+                Dashboard stats and behavior trends will update automatically.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleDelete}
+              >
+                Delete Report
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DashboardLayout>
     );
   }

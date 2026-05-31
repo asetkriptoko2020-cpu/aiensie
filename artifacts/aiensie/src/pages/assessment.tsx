@@ -17,7 +17,13 @@ import { detectAndParse, generateReport, SAMPLE_TRADES } from "@workspace/aiensi
 import type { AiensieReport } from "@workspace/aiensie-engine";
 import { ScoreReport }        from "@/components/report/ScoreReport";
 import { saveReportSnapshot } from "@/lib/behavior-memory";
-import { saveFullReport }    from "@/lib/report-store";
+import {
+  saveFullReport,
+  replaceReport,
+  detectDuplicateReport,
+  type DuplicateMatch,
+  type DuplicateTag,
+} from "@/lib/report-store";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -30,9 +36,18 @@ interface ProcessingStep {
   status: StepStatus;
 }
 
+type ParseResult = ReturnType<typeof detectAndParse>;
+
+interface ProcessFileOpts {
+  tag?:                  DuplicateTag;
+  replaceId?:            string;
+  precomputedParseResult?: ParseResult;
+}
+
 type Phase =
   | { name: "upload" }
   | { name: "processing" }
+  | { name: "duplicate"; match: DuplicateMatch; file: File; parseResult: ParseResult }
   | { name: "complete"; report: AiensieReport; exchange: string; tradeCount: number }
   | { name: "error"; message: string };
 
@@ -108,36 +123,55 @@ export default function AssessmentPage() {
   const setStepStatus = (index: number, status: StepStatus) =>
     setSteps((prev) => prev.map((s, i) => i === index ? { ...s, status } : s));
 
-  const processFile = async (csvFile: File) => {
+  const processFile = async (csvFile: File, opts?: ProcessFileOpts) => {
     setPhase({ name: "processing" });
     setSteps(INITIAL_STEPS);
 
     try {
       // ── Step 1: Read file ──
       setStepStatus(0, "processing");
-      const [text] = await Promise.all([readFileText(csvFile), delay(500)]);
-      console.log("[Aiensie] File read complete — size:", text.length, "chars");
-      setStepStatus(0, "complete");
+      let parseResult: ParseResult;
 
-      // ── Step 2: Detect exchange & parse ──
-      setStepStatus(1, "processing");
-      const parseResult = await new Promise<ReturnType<typeof detectAndParse>>(
-        (resolve, reject) => {
-          Papa.parse<Record<string, string>>(text, {
-            header:         true,
-            skipEmptyLines: true,
-            complete: (results) => {
-              try {
-                console.log("[Aiensie] PapaParse complete — rows:", results.data.length);
-                resolve(detectAndParse(results.data));
-              } catch (e) {
-                reject(e);
-              }
-            },
-            error: reject,
-          });
+      if (opts?.precomputedParseResult) {
+        // Resuming after duplicate dialog — skip re-parsing
+        parseResult = opts.precomputedParseResult;
+        await delay(300);
+        setStepStatus(0, "complete");
+        setStepStatus(1, "processing");
+        await delay(250);
+      } else {
+        const [text] = await Promise.all([readFileText(csvFile), delay(500)]);
+        console.log("[Aiensie] File read complete — size:", text.length, "chars");
+        setStepStatus(0, "complete");
+
+        // ── Step 2: Detect exchange & parse ──
+        setStepStatus(1, "processing");
+        parseResult = await new Promise<ParseResult>(
+          (resolve, reject) => {
+            Papa.parse<Record<string, string>>(text, {
+              header:         true,
+              skipEmptyLines: true,
+              complete: (results) => {
+                try {
+                  console.log("[Aiensie] PapaParse complete — rows:", results.data.length);
+                  resolve(detectAndParse(results.data));
+                } catch (e) {
+                  reject(e);
+                }
+              },
+              error: reject,
+            });
+          }
+        );
+
+        // ── Duplicate detection ──
+        const dup = detectDuplicateReport(parseResult.tradeCount, parseResult.exchangeLabel);
+        if (dup) {
+          setPhase({ name: "duplicate", match: dup, file: csvFile, parseResult });
+          return;
         }
-      );
+      }
+
       await delay(350);
 
       console.log("[Aiensie] Parse result:", {
@@ -202,7 +236,11 @@ export default function AssessmentPage() {
 
       // ── Save to behavior memory (snapshot) and full report store ──
       saveReportSnapshot(report, parseResult.exchangeLabel, parseResult.tradeCount);
-      saveFullReport(report, parseResult.exchangeLabel, parseResult.tradeCount);
+      if (opts?.replaceId) {
+        replaceReport(opts.replaceId, report, parseResult.exchangeLabel, parseResult.tradeCount, opts.tag ?? "updated-report");
+      } else {
+        saveFullReport(report, parseResult.exchangeLabel, parseResult.tradeCount, opts?.tag);
+      }
 
       setPhase({
         name:       "complete",
@@ -313,12 +351,18 @@ export default function AssessmentPage() {
           {/* Page header */}
           <div className="text-center mb-12">
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              {phase.name === "complete" ? "Your Assessment Results" : "Start Your Assessment"}
+              {phase.name === "complete"
+                ? "Your Assessment Results"
+                : phase.name === "duplicate"
+                  ? "Duplicate Detected"
+                  : "Start Your Assessment"}
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
               {phase.name === "complete"
                 ? "Here is your personalized Aiensie Score and behavioral breakdown."
-                : "Upload your trading history to receive your personalized Aiensie Score and behavioral insights."}
+                : phase.name === "duplicate"
+                  ? "We found a similar report already in your history."
+                  : "Upload your trading history to receive your personalized Aiensie Score and behavioral insights."}
             </p>
           </div>
 
@@ -474,6 +518,94 @@ export default function AssessmentPage() {
                 </div>
               </div>
             </>
+          )}
+
+          {/* ── DUPLICATE WARNING phase ── */}
+          {phase.name === "duplicate" && (
+            <div className="glass rounded-2xl p-8 space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-950/40 border border-amber-800/30 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-6 h-6 text-amber-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground mb-1">Similar Report Detected</h2>
+                  <p className="text-sm text-muted-foreground">
+                    This upload appears similar to an existing report in your history.
+                    How would you like to proceed?
+                  </p>
+                </div>
+              </div>
+
+              {/* Existing report details */}
+              <div className="rounded-xl border border-border/50 bg-card/60 p-4 space-y-1.5 text-sm">
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest mb-2">Existing Report</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Exchange</span>
+                  <span className="text-foreground font-medium">{phase.match.exchange}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Trades</span>
+                  <span className="text-foreground font-medium">{phase.match.tradeCount}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Score</span>
+                  <span className="text-foreground font-medium">{phase.match.score}/100</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Uploaded</span>
+                  <span className="text-foreground font-medium">
+                    {new Date(phase.match.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                  <span className="text-muted-foreground">Similarity</span>
+                  <span className="text-amber-400 font-semibold">{phase.match.similarity}%</span>
+                </div>
+              </div>
+
+              {/* Choices */}
+              <div className="space-y-3">
+                <Button
+                  className="w-full h-12 justify-start gap-3 text-sm"
+                  onClick={() =>
+                    processFile(phase.file, {
+                      tag: "updated-report",
+                      replaceId: phase.match.id,
+                      precomputedParseResult: phase.parseResult,
+                    })
+                  }
+                >
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                  <div className="text-left">
+                    <p className="font-semibold">Replace Existing</p>
+                    <p className="text-xs opacity-75">Update the old report with this new upload</p>
+                  </div>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full h-12 justify-start gap-3 text-sm"
+                  onClick={() =>
+                    processFile(phase.file, {
+                      tag: "re-uploaded-session",
+                      precomputedParseResult: phase.parseResult,
+                    })
+                  }
+                >
+                  <FileText className="w-4 h-4 flex-shrink-0" />
+                  <div className="text-left">
+                    <p className="font-semibold">Keep Both</p>
+                    <p className="text-xs opacity-75 text-muted-foreground">Save as a separate report alongside the existing one</p>
+                  </div>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full h-10 text-sm text-muted-foreground hover:text-foreground"
+                  onClick={resetUpload}
+                >
+                  Cancel Upload
+                </Button>
+              </div>
+            </div>
           )}
 
           {/* ── PROCESSING phase ── */}

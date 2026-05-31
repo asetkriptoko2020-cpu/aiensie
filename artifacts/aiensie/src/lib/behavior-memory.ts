@@ -30,3 +30,21 @@ export function loadSnapshots(): BehaviorSnapshot[] {
     return [];
   }
 }
+
+// ── Delete snapshot by approximate timestamp ────────────────────────────────
+// Removes the snapshot whose timestamp is closest to the given value,
+// within a 10-second window. Called when a SavedReport is deleted so
+// that Behavior Evolution history stays in sync.
+
+export function deleteSnapshotNear(timestamp: number): void {
+  try {
+    const existing = loadSnapshots();
+    const idx = existing.findIndex((s) => Math.abs(s.timestamp - timestamp) < 10_000);
+    if (idx !== -1) {
+      const updated = [...existing.slice(0, idx), ...existing.slice(idx + 1)];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    }
+  } catch {
+    // localStorage may be unavailable
+  }
+}
