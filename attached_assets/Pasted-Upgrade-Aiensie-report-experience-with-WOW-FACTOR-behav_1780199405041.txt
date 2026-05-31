@@ -1,0 +1,169 @@
+Upgrade Aiensie report experience with WOW FACTOR behavioral intelligence features.
+
+Do NOT redesign the existing UI.
+Extend the current premium dark fintech style only.
+
+GOAL:
+Make reports feel emotionally intelligent, psychologically deep, and visually memorable.
+
+==================================================
+1. TRADING BEHAVIOR TIMELINE
+==================================================
+
+Create a new section:
+"Behavior Timeline"
+
+Purpose:
+Visualize emotional trading progression during sessions.
+
+Example flow:
+Loss
+→ revenge entry
+→ larger position size
+→ impulsive re-entry
+→ emotional drawdown
+
+Show:
+- chronological behavior events
+- emotional escalation
+- streak changes
+- position sizing changes
+- confidence shifts
+
+Examples:
+- "Loss followed by rapid re-entry within 4 minutes."
+- "Position size increased after consecutive wins."
+- "Execution discipline deteriorated after drawdown."
+
+Style:
+- premium vertical timeline
+- subtle glow
+- psychologically analytical
+- concise
+
+==================================================
+2. SESSION HEATMAP
+==================================================
+
+Create:
+"Execution Heatmap"
+
+Visualize:
+- Morning sessions
+- Afternoon sessions
+- Evening sessions
+- Late-night sessions
+
+Track:
+- discipline
+- profitability
+- emotional stability
+- impulsiveness
+
+Examples:
+- Morning = disciplined
+- Late-night = emotional
+- New York open = aggressive
+- Slow sessions = patient
+
+Use:
+- soft heat colors
+- premium dark UI
+- clean institutional style
+
+==================================================
+3. EMOTIONAL ESCALATION DETECTOR
+==================================================
+
+Create a new intelligence card:
+"Emotional Escalation"
+
+Detect:
+- revenge trading
+- increasing size after losses
+- overconfidence after wins
+- panic exits
+- impulsive frequency spikes
+
+Examples:
+- "Position sizing increased 240% after consecutive losses."
+- "Trade frequency doubled during emotional sessions."
+- "Winning streak confidence caused aggressive exposure expansion."
+
+Add:
+- severity levels
+- warning indicators
+- concise explanations
+
+==================================================
+4. ADVANCED SMART ALERTS
+==================================================
+
+Upgrade Smart Alerts with:
+- stronger psychological insights
+- progression awareness
+- session-aware behavior
+
+Examples:
+- "Your last 3 uploads show improving emotional discipline."
+- "Late-night execution quality continues to decline."
+- "Overconfidence behavior increased after profitable streaks."
+- "Trade patience improved significantly this month."
+
+Alert categories:
+- Improvement
+- Warning
+- Critical
+- Insight
+
+==================================================
+5. REPORT WOW MOMENTS
+==================================================
+
+Add powerful human-readable insight sections.
+
+Examples:
+- "Your best trades occur when execution frequency decreases."
+- "Most major losses originated from emotionally reactive entries."
+- "You become significantly more aggressive after recovery trades."
+- "Execution quality collapses during high-frequency emotional sessions."
+
+Goal:
+Make users feel:
+“This platform actually understands my trading behavior.”
+
+==================================================
+6. PDF EXPORT UPGRADE
+==================================================
+
+Upgrade PDF export layout into:
+- institutional behavioral report
+- clean typography
+- premium formatting
+- psychological intelligence feel
+
+Include:
+- cover page
+- Aiensie Score
+- Trader Persona
+- Behavioral DNA
+- Timeline
+- Session Heatmap
+- Emotional Escalation
+- Action Plan
+
+==================================================
+IMPORTANT
+==================================================
+
+- Keep current architecture
+- No redesign
+- Use mock intelligence logic for now
+- No backend/database yet
+- Keep modular structure
+- Make Aiensie feel:
+  - psychologically aware
+  - elite
+  - adaptive
+  - premium
+  - unforgettable

@@ -28,6 +28,10 @@ import { SessionIntelligenceCard }  from "@/components/report/SessionIntelligenc
 import { TraderArchetypeCard }      from "@/components/report/TraderArchetypeCard";
 import { BehaviorEvolutionCard }    from "@/components/report/BehaviorEvolutionCard";
 import CrossMarketCard              from "@/components/report/CrossMarketCard";
+import { BehaviorTimeline }         from "@/components/report/BehaviorTimeline";
+import { SessionHeatmap }           from "@/components/report/SessionHeatmap";
+import { EmotionalEscalationCard }  from "@/components/report/EmotionalEscalationCard";
+import { WowMoments }               from "@/components/report/WowMoments";
 import { generateSmartAlerts }      from "@/lib/smart-alerts";
 import { loadSavedReports, savedReportToMockReport } from "@/lib/report-store";
 
@@ -502,14 +506,29 @@ export function ScoreReport({ report, exchange, tradeCount, onReset, isPro = fal
         )}
       </div>
 
+      {/* ── Pro: Emotional Escalation Detector ── */}
+      {isPro && (
+        <EmotionalEscalationCard report={report} />
+      )}
+
       {/* ── Pro: Trader Archetype / Behavioral DNA ── */}
       {isPro && (
         <TraderArchetypeCard data={archetypeDNA} />
       )}
 
+      {/* ── Pro: Behavior Timeline ── */}
+      {isPro && (
+        <BehaviorTimeline report={report} />
+      )}
+
       {/* ── Pro: Session Intelligence ── */}
       {isPro && sessionIntelligence && (
         <SessionIntelligenceCard data={sessionIntelligence} />
+      )}
+
+      {/* ── Pro: Execution Heatmap ── */}
+      {isPro && (
+        <SessionHeatmap data={sessionIntelligence} />
       )}
 
       {/* ── Pro: Cross-Market Intelligence ── */}
@@ -554,6 +573,11 @@ export function ScoreReport({ report, exchange, tradeCount, onReset, isPro = fal
             })}
           </div>
         </div>
+      )}
+
+      {/* ── Pro: Behavioral Intelligence (Wow Moments) ── */}
+      {isPro && (
+        <WowMoments report={report} />
       )}
 
       {/* ── 4. Key Strengths ── */}
@@ -608,6 +632,30 @@ export function ScoreReport({ report, exchange, tradeCount, onReset, isPro = fal
             </p>
           </div>
           <LockedFeatureTeaser
+            title="Emotional Escalation Detector"
+            description="See every revenge trade, panic exit, and overconfidence spike — with severity levels and psychological explanations."
+            icon={AlertTriangle}
+            accent="#ef4444"
+          />
+          <LockedFeatureTeaser
+            title="Behavior Timeline"
+            description="Replay your session as a chronological behavioral story — from the first trade to emotional drawdown and recovery."
+            icon={Activity}
+            accent="#06b6d4"
+          />
+          <LockedFeatureTeaser
+            title="Execution Heatmap"
+            description="See exactly when you trade well and when your discipline breaks — mapped across morning, afternoon, and late-night sessions."
+            icon={BarChart3}
+            accent="#f59e0b"
+          />
+          <LockedFeatureTeaser
+            title="Behavioral Intelligence Insights"
+            description="Deep pattern analysis that tells you exactly why your best trades happen — and what's silently suppressing your results."
+            icon={Sparkles}
+            accent="#a78bfa"
+          />
+          <LockedFeatureTeaser
             title="Unlock Behavioral DNA in Pro"
             description="See your full psychological execution profile, edge profile, and trader archetype signals."
             icon={Dna}
@@ -618,12 +666,6 @@ export function ScoreReport({ report, exchange, tradeCount, onReset, isPro = fal
             description="Compare behavioral scores across multiple assessments and watch how your discipline evolves."
             icon={TrendingUp}
             accent="#06b6d4"
-          />
-          <LockedFeatureTeaser
-            title="Compare Crypto, Stocks, and Forex Behavior"
-            description="Discover how your psychology holds up across different markets and asset classes."
-            icon={Globe}
-            accent="#38bdf8"
           />
         </div>
       )}
