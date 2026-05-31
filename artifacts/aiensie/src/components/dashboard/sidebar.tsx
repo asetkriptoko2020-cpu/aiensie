@@ -15,7 +15,7 @@ import { MOCK_USER } from "./mock-data";
 
 const NAV_ITEMS = [
   { label: "Overview",         icon: LayoutDashboard, href: "/dashboard"           },
-  { label: "New Assessment",   icon: PlusCircle,      href: "/assessment?from=dashboard" },
+  { label: "New Assessment",   icon: PlusCircle,      href: "/dashboard/new-assessment" },
   { label: "Reports",          icon: FileText,        href: "/dashboard/reports"    },
   { label: "Behavior Trends",  icon: TrendingUp,      href: "/dashboard/trends"     },
   { label: "Markets",          icon: Globe,           href: "/dashboard/markets"    },

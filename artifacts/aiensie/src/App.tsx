@@ -24,8 +24,9 @@ function Router() {
       <Route path="/dashboard/reports/:id"  component={ReportDetailPage} />
       <Route path="/dashboard/trends"       component={TrendsPage} />
       <Route path="/dashboard/markets"      component={MarketsPage} />
-      <Route path="/dashboard/settings"     component={SettingsPage} />
-      <Route path="/dashboard/upgrade"      component={UpgradePage} />
+      <Route path="/dashboard/settings"       component={SettingsPage} />
+      <Route path="/dashboard/upgrade"       component={UpgradePage} />
+      <Route path="/dashboard/new-assessment" component={AssessmentPage} />
       <Route path="/reports"               component={ReportsPage} />
       <Route path="/upgrade"               component={UpgradePage} />
       <Route                                component={NotFound} />

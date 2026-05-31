@@ -1,0 +1,99 @@
+The Pro Dashboard system already exists inside the project, but the app is still routing users back to the landing page instead of properly entering the dashboard workspace.
+
+Please FIX routing/navigation and connect all existing Pro dashboard pages correctly.
+
+==================================================
+GOAL
+==================================================
+
+Make Aiensie behave like a real SaaS app.
+
+Current issue:
+- Pro dashboard components already exist
+- Reports pages already exist
+- Behavior evolution already exists
+- But app flow is broken/inconsistent
+
+==================================================
+FIX APP FLOW
+==================================================
+
+Correct user flow:
+
+Landing Page
+→ Sign In
+→ Pro Dashboard
+
+NOT:
+Landing Page
+→ Assessment
+→ Back to Landing
+
+==================================================
+REQUIRED FIXES
+==================================================
+
+1. SIGN IN FLOW
+- Clicking "Sign In" should enter:
+  /dashboard
+
+2. DASHBOARD NAVIGATION
+Dashboard sidebar should correctly route to:
+- /dashboard
+- /dashboard/new-assessment
+- /dashboard/reports
+- /dashboard/behavior-trends
+- /dashboard/markets
+- /dashboard/settings
+
+3. NEW ASSESSMENT FLOW
+Inside dashboard:
+- clicking "New Assessment"
+should open:
+  /dashboard/new-assessment
+
+After upload:
+- save report into dashboard history
+- update trends/evolution
+- redirect to:
+  /dashboard/reports/[id]
+
+4. BACK BUTTONS
+Inside dashboard pages:
+- Back should return to dashboard
+NOT landing page.
+
+5. FREE VS PRO SEPARATION
+Public free assessment:
+- temporary only
+- no save
+- no dashboard sync
+
+Dashboard uploads:
+- persistent
+- saved in reports
+- tracked in evolution
+
+6. REPORT PAGE FIX
+When clicking:
+"View Report"
+
+inside dashboard reports:
+- open FULL PRO REPORT
+NOT free/public report page.
+
+==================================================
+IMPORTANT
+==================================================
+
+DO NOT redesign UI.
+DO NOT remove existing components.
+Just connect and fix routing/navigation/state flow properly.
+
+The project already contains:
+- dashboard components
+- report components
+- behavior evolution
+- pro pages
+
+Make them function as one connected SaaS experience.

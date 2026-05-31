@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { Link, useSearch } from "wouter";
+import { Link, useSearch, useLocation } from "wouter";
 import Papa from "papaparse";
 import {
   Upload,
@@ -91,8 +91,12 @@ export default function AssessmentPage() {
   const [steps, setSteps]         = useState<ProcessingStep[]>(INITIAL_STEPS);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  const [location, navigate] = useLocation();
   const search        = useSearch();
-  const fromDashboard = new URLSearchParams(search).get("from") === "dashboard";
+  const fromDashboard =
+    new URLSearchParams(search).get("from") === "dashboard" ||
+    location === "/dashboard/new-assessment" ||
+    location.startsWith("/dashboard/new-assessment/");
   const exitHref      = fromDashboard ? "/dashboard" : "/";
 
   // ── File handling ──────────────────────────────────────────────────────────
@@ -235,11 +239,19 @@ export default function AssessmentPage() {
       await delay(600);
 
       // ── Save to behavior memory (snapshot) and full report store ──
-      saveReportSnapshot(report, parseResult.exchangeLabel, parseResult.tradeCount);
-      if (opts?.replaceId) {
-        replaceReport(opts.replaceId, report, parseResult.exchangeLabel, parseResult.tradeCount, opts.tag ?? "updated-report");
-      } else {
-        saveFullReport(report, parseResult.exchangeLabel, parseResult.tradeCount, opts?.tag);
+      // Only persist when uploading from the dashboard; the public free assessment is ephemeral.
+      if (fromDashboard) {
+        saveReportSnapshot(report, parseResult.exchangeLabel, parseResult.tradeCount);
+        let savedId: string;
+        if (opts?.replaceId) {
+          const saved = replaceReport(opts.replaceId, report, parseResult.exchangeLabel, parseResult.tradeCount, opts.tag ?? "updated-report");
+          savedId = saved.id;
+        } else {
+          const saved = saveFullReport(report, parseResult.exchangeLabel, parseResult.tradeCount, opts?.tag);
+          savedId = saved.id;
+        }
+        navigate(`/dashboard/reports/${savedId}`);
+        return;
       }
 
       setPhase({
@@ -295,9 +307,13 @@ export default function AssessmentPage() {
     setStepStatus(4, "complete");
     await delay(600);
 
-    // Save snapshot and full report
-    saveReportSnapshot(report, "Sample Data", SAMPLE_TRADES.length);
-    saveFullReport(report, "Sample Data", SAMPLE_TRADES.length);
+    // Only persist when in dashboard context; public sample mode is ephemeral.
+    if (fromDashboard) {
+      saveReportSnapshot(report, "Sample Data", SAMPLE_TRADES.length);
+      const saved = saveFullReport(report, "Sample Data", SAMPLE_TRADES.length);
+      navigate(`/dashboard/reports/${saved.id}`);
+      return;
+    }
 
     setPhase({
       name:       "complete",
