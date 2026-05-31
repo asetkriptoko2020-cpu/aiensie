@@ -5,6 +5,7 @@ import {
   XCircle,
   ArrowRight,
   TrendingUp,
+  TrendingDown,
   Shield,
   Activity,
   Brain,
@@ -27,6 +28,8 @@ import { SessionIntelligenceCard }  from "@/components/report/SessionIntelligenc
 import { TraderArchetypeCard }      from "@/components/report/TraderArchetypeCard";
 import { BehaviorEvolutionCard }    from "@/components/report/BehaviorEvolutionCard";
 import CrossMarketCard              from "@/components/report/CrossMarketCard";
+import { generateSmartAlerts }      from "@/lib/smart-alerts";
+import { loadSavedReports, savedReportToMockReport } from "@/lib/report-store";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -312,6 +315,15 @@ function ActionItem({ index, text }: { index: number; text: string }) {
   );
 }
 
+// ── Smart Alerts meta ─────────────────────────────────────────────────────────
+
+const ALERT_META: Record<string, { color: string; bg: string; border: string; label: string; Icon: React.ElementType }> = {
+  improvement: { color: "#10b981", bg: "oklch(0.13 0.02 160 / 0.5)",  border: "rgba(16,185,129,0.18)",  label: "Improvement", Icon: CheckCircle2  },
+  warning:     { color: "#f59e0b", bg: "oklch(0.13 0.02 60 / 0.5)",   border: "rgba(245,158,11,0.18)",   label: "Warning",     Icon: AlertTriangle  },
+  critical:    { color: "#ef4444", bg: "oklch(0.13 0.02 20 / 0.5)",   border: "rgba(239,68,68,0.18)",    label: "Critical",    Icon: TrendingDown   },
+  insight:     { color: "#38bdf8", bg: "oklch(0.13 0.015 220 / 0.5)", border: "rgba(56,189,248,0.18)",   label: "Insight",     Icon: Info           },
+};
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function ScoreReport({ report, exchange, tradeCount, onReset, isPro = false }: ScoreReportProps) {
@@ -330,6 +342,10 @@ export function ScoreReport({ report, exchange, tradeCount, onReset, isPro = fal
   const activePatterns   = isPro ? detectedPatterns : freePatterns;
   const activeStrengths  = isPro ? strengths        : freeStrengths;
   const activeWeaknesses = isPro ? weaknesses       : freeWeaknesses;
+
+  const smartAlerts = isPro
+    ? generateSmartAlerts(loadSavedReports().map(savedReportToMockReport))
+    : [];
   const activeActions    = isPro ? actionPlan        : freeActions;
 
   useEffect(() => {
@@ -503,7 +519,41 @@ export function ScoreReport({ report, exchange, tradeCount, onReset, isPro = fal
 
       {/* ── Pro: Behavior Evolution ── */}
       {isPro && (
-        <BehaviorEvolutionCard currentScore={aiensieScore} currentScores={scores} />
+        <BehaviorEvolutionCard currentReport={report} />
+      )}
+
+      {/* ── Pro: Smart Alerts ── */}
+      {isPro && smartAlerts.length > 0 && (
+        <div className="glass rounded-2xl p-6">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-6 h-6 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center">
+              <Zap className="w-3.5 h-3.5 text-primary" />
+            </div>
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Smart Alerts</h3>
+            <span className="ml-auto text-[10px] text-muted-foreground/50 uppercase tracking-widest">AI-generated</span>
+          </div>
+          <div className="space-y-2.5">
+            {smartAlerts.map(({ type, message }, i) => {
+              const meta = ALERT_META[type] ?? ALERT_META.insight;
+              const Icon = meta.Icon;
+              return (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 rounded-xl px-4 py-3 border"
+                  style={{ background: meta.bg, borderColor: meta.border }}
+                >
+                  <Icon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: meta.color }} />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-bold uppercase tracking-widest mr-2" style={{ color: meta.color }}>
+                      {meta.label}
+                    </span>
+                    <span className="text-xs text-foreground/80 leading-relaxed">{message}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {/* ── 4. Key Strengths ── */}
