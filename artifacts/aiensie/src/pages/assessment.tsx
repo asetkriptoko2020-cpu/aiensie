@@ -168,11 +168,14 @@ export default function AssessmentPage() {
           }
         );
 
-        // ── Duplicate detection ──
-        const dup = detectDuplicateReport(parseResult.tradeCount, parseResult.exchangeLabel);
-        if (dup) {
-          setPhase({ name: "duplicate", match: dup, file: csvFile, parseResult });
-          return;
+        // ── Duplicate detection (Pro Dashboard only) ──
+        // Free/public assessments are ephemeral — skip duplicate checks entirely.
+        if (fromDashboard) {
+          const dup = detectDuplicateReport(parseResult.tradeCount, parseResult.exchangeLabel);
+          if (dup) {
+            setPhase({ name: "duplicate", match: dup, file: csvFile, parseResult });
+            return;
+          }
         }
       }
 
